@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="container registration-container">
+    <div class="row">
+        <div class="col-md-6 login-form-1">
+            <h3>Login</h3>
+            <form method="post" action="{% url 'signup' %}">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-group">
+                    {{ field.label_tag }}<br>
+                    {{ field|attr:"class:form-control"}}
+                    {% for error in field.errors %}
+                     <p style="color: red">{{ error }}</p>
+                    {% endfor %}
+                    </div>
+                {% endfor %}
+                <div class="form-group">
+                    <input type="submit" class="btnSubmit" value="Create account" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
