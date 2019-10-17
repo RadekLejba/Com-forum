@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'forum',
+    'posting',
     'sass_processor',
     'users',
     'widget_tweaks',
@@ -127,3 +128,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 SASS_PROCESSOR_ROOT = STATIC_URL
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'sass_processor.finders.CssFinder',
+]
+
+
+# Other settings.
+
+LOGOUT_REDIRECT_URL = 'users:login'
+# !IMPORTANT! Remove on production.
+AUTH_PASSWORD_VALIDATORS = []

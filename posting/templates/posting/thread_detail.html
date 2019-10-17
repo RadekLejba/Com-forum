@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Wpisy{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h3>{{ object.author}}</h3>
+            <h4>{{ object.content }}</h4>
+                <a href="{% url 'posting:create_post' pk=object.id %}?responding_to_the_thread=True" >
+                    <button class="btn-lg btn-outline-primary" type="submit">Respond</button>
+                </a>
+            <ul class="timeline">
+                {% for post in posts %}
+                    <li>
+                        <a target="_blank" href="#">{{ post.author }}</a>
+                        <a href="#" class="float-right">{{ post.created }}</a>
+                        <a href="#" class="float-right">{{ post.id }}</a>
+                        <p>{{ post.content }}</p>
+                        <a href="{% url 'posting:create_post' pk=object.id %}?refers_to={{ post.id }}&parent={{ post.id }}">
+                            <button class="btn-lg btn-outline-primary" type="submit">Respond</button>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'posting:create_post' pk=object.id %}" >
+                <button class="btn-lg btn-outline-primary col-lg-12" type="submit">Respond</button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
