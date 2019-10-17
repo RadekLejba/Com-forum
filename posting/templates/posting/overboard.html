@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Wpisy{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for object in object_list %}
+        <ul class="list-group col-lg-4">
+            <a href="{% url 'posting:thread' object.pk %}">
+                <li class="list-group-item list-group-item-action">
+                    {{ object }}
+                </li>
+            </a>
+        </ul>
+    {% endfor %}
+</div>
+{% endblock %}

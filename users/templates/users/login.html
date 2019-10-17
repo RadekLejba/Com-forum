@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-6 login-form-1">
             <h3>Login</h3>
-            <form method="post" action="{% url 'login' %}">
+            <form method="post" action="{% url 'users:login' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <input type="text" class="form-control" id="username" name="username"  placeholder="Username">
@@ -23,7 +23,7 @@
                     </div>
                 {% endif %}
                 <div class="form-group">
-                    <a href="{% url 'signup' %}" class="ForgetPwd">Register</a>
+                    <a href="{% url 'users:signup' %}" class="ForgetPwd">Register</a>
                 </div>
             </form>
         </div>

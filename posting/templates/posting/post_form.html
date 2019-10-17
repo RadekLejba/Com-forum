@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Create post{% endblock %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
+    <input type="hidden" name="responding_to_the_thread" value="{{ responding_to_the_thread }}"><br>
+    <input type="submit" value="Save">
+</form>
+{% endblock %}
