@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Create post{% endblock %}
+
+{% block content %}
+<ul>
+{% for thread in object_list %}
+    <li>{{ thread }}</li>
+{% endfor %}
+</ul>
+<a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
+    <button class="btn-lg btn-outline-primary col-lg-12" type="submit">Create Thread</button>
+</a>
+{% endblock %}
