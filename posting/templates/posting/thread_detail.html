@@ -7,24 +7,38 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <h3>{{ object.author}}</h3>
-            <h4>{{ object.content }}</h4>
-                <a href="{% url 'posting:create_post' pk=object.id %}?responding_to_the_thread=True" >
+            <h4>{{ starting_post.content }}</h4>
+                <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
                     <button class="btn-lg btn-outline-primary" type="submit">Respond</button>
                 </a>
             <ul class="timeline">
-                {% for post in posts %}
+                {% for parent, children in posts.items %}
                     <li>
-                        <a target="_blank" href="#">{{ post.author }}</a>
-                        <a href="#" class="float-right">{{ post.created }}</a>
-                        <a href="#" class="float-right">{{ post.id }}</a>
-                        <p>{{ post.content }}</p>
-                        <a href="{% url 'posting:create_post' pk=object.id %}?refers_to={{ post.id }}&parent={{ post.id }}">
+                        <a target="_blank" href="#">{{ parent.author }}</a>
+                        <a href="#" class="float-right">{{ parent.created }}</a>
+                        <a href="#" class="float-right">{{ parent.id }}</a>
+                        <p>{{ parent.content }}</p>
+                        <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ parent.id }}&parent={{ parent.id }}">
                             <button class="btn-lg btn-outline-primary" type="submit">Respond</button>
                         </a>
+                        {% if children %}
+                            {% for child in children %}
+                                <ul class="timeline">
+                                    <li>
+                                    <a target="_blank" href="#">{{ children.author }}</a>
+                                    <a href="#" class="float-right">{{ children.created }}</a>
+                                    <a href="#" class="float-right">{{ children.id }}</a>
+                                    <p>{{ children.content }}</p>
+                                    <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ children.id }}&parent={{ parent.id }}">
+                                        <button class="btn-lg btn-outline-primary" type="submit">Respond</button>
+                                    </a>
+                                </ul>>
+                            {% endfor %}
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>
-            <a href="{% url 'posting:create_post' pk=object.id %}" >
+            <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
                 <button class="btn-lg btn-outline-primary col-lg-12" type="submit">Respond</button>
             </a>
         </div>

@@ -7,7 +7,7 @@
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
                 {% for board in boards %}
                     <li class="nav-item active">
-                        <a class="nav-link" href="#">{{board.name}}<span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'posting:board_threads_list' board_pk=board.pk %}">{{ board.name }}<span class="sr-only">(current)</span></a>
                     </li>
                 {% endfor %}
             </ul>

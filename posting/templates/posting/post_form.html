@@ -5,8 +5,12 @@
 {% block content %}
 <form method="post">{% csrf_token %}
     {{ form.as_p }}
-    <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
-    <input type="hidden" name="responding_to_the_thread" value="{{ responding_to_the_thread }}"><br>
+    {% if refers_to %}
+        <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
+    {% endif %}
+    {% if responding_to_the_thread %}
+        <input type="hidden" name="responding_to_the_thread" value="{{ responding_to_the_thread }}"><br>
+    {% endif %}
     <input type="submit" value="Save">
 </form>
 {% endblock %}

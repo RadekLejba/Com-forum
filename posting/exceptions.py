@@ -1,0 +1,2 @@
+class CannotCreateException(Exception):
+    pass
