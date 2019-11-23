@@ -84,22 +84,14 @@ class ThreadDetailView(BaseViewMixin, DetailView):
 
 class CreatePostView(BaseViewMixin, CreateView):
     model = Post
-    fields = ['content']
+    fields = ['content', 'parent', 'refers_to']
 
     def form_valid(self, form):
-        parent = self.request.POST.get('parent')
-        refers_to = self.request.POST.get('refers_to')
-        thread_pk = self.kwargs.get('board_pk')
+        thread_pk = self.kwargs.get('thread_pk')
         try:
             form.instance.thread = Thread.objects.get(id=thread_pk)
-            if parent:
-                form.instance.parent = Post.objects.get(id=parent)
-            if refers_to:
-                form.instance.refers_to = Post.objects.get(id=refers_to)
         except Thread.DoesNotExist:
             return HttpResponseNotFound('<h4>Thread not found</h4>')
-        except Post.DoesNotExist:
-            return HttpResponseNotFound('<h4>Post not found</h4>')
 
         form.instance.author = self.request.user
 
@@ -109,9 +101,6 @@ class CreatePostView(BaseViewMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['refers_to'] = self.request.GET.get('refers_to')
         context['parent'] = self.request.GET.get('parent')
-        context['responding_to_the_thread'] = self.request.GET.get(
-            'responding_to_the_thread'
-        )
         return context
 
 

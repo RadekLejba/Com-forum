@@ -129,6 +129,10 @@ class CreatePostTestCase(PostingTestMixin):
             author=self.user,
             thread=self.thread,
         )
+        self.post2 = Post.objects.create(
+            author=self.user,
+            thread=self.thread,
+        )
 
     def test_context(self):
         self.client.login(username=self.user.username, password='testpassword')
@@ -139,9 +143,6 @@ class CreatePostTestCase(PostingTestMixin):
         response_with_parent = self.client.get(
             self.create_url, {'parent': self.post.id}
         )
-        response_refers_thread = self.client.get(
-            self.create_url, {'responding_to_the_thread': True}
-        )
 
         self.assertEqual(
             ast.literal_eval(response_refers_to_post.context.get('refers_to')),
@@ -151,12 +152,6 @@ class CreatePostTestCase(PostingTestMixin):
             ast.literal_eval(response_with_parent.context.get('parent')),
             self.post.id,
         )
-        self.assertEqual(
-            ast.literal_eval(
-                response_refers_thread.context.get('responding_to_the_thread')
-            ),
-            True,
-        )
 
     def test_create_post(self):
         self.client.login(username=self.user.username, password='testpassword')
@@ -164,27 +159,49 @@ class CreatePostTestCase(PostingTestMixin):
         response = self.client.post(
             self.create_url, {'content': self.post_content}
         )
-        post_id = ast.literal_eval(response.url[-1])
+        post_id = ast.literal_eval(response.url.split('post_id=')[1])
         post = Post.objects.get(id=post_id)
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(post.content, self.post_content)
         self.assertEqual(post.author, self.user)
 
-    def test_respond_to_parent(self):
+    def test_create_post_with_parent_and_referrers(self):
         self.client.login(username=self.user.username, password='testpassword')
 
         response = self.client.post(
             self.create_url,
-            {'content': self.post_content, 'parent': self.post.id},
+            {
+                'content': self.post_content,
+                'parent': self.post.id,
+                'refers_to': [self.post.id, self.post2.id]
+            },
         )
-        post_id = ast.literal_eval(response.url[-1])
+        post_id = ast.literal_eval(response.url.split('post_id=')[1])
         post = Post.objects.get(id=post_id)
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(post.content, self.post_content)
         self.assertEqual(post.parent, self.post)
         self.assertEqual(post.author, self.user)
+
+    def test_create_with_non_existing_thread(self):
+        self.client.login(username=self.user.username, password='testpassword')
+        post_quantity = Post.objects.all().count()
+        non_existing_thread_url = reverse(
+            'posting:create_post',
+            kwargs={'board_pk': self.board.pk, 'thread_pk': 2137},
+        )
+
+        response = self.client.post(
+            non_existing_thread_url,
+            {
+                'content': self.post_content,
+            },
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(Post.objects.all().count(), post_quantity)
 
     def test_cant_create_multiple_starting_posts(self):
         self.post.starting_post = True
