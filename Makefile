@@ -1,3 +1,6 @@
+superuser:
+	docker-compose run web python manage.py createsuperuser
+
 run:
 	docker-compose run --service-ports web
 

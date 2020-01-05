@@ -14,7 +14,13 @@
     </head>
     <body>
         {% include 'forum/top-navigation.html' %}
-        {% block content %}
-        {% endblock %}
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-8">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
     </body>
 </html>

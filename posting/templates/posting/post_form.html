@@ -1,16 +1,32 @@
 {% extends 'base.html' %}
 
+{% load widget_tweaks %}
+
 {% block title %}Create post{% endblock %}
 
 {% block content %}
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    {% if refers_to %}
-        <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
-    {% endif %}
-    {% if responding_to_the_thread %}
-        <input type="hidden" name="responding_to_the_thread" value="{{ responding_to_the_thread }}"><br>
-    {% endif %}
-    <input type="submit" value="Save">
-</form>
+<div class="row">
+    <div class="col-md-12">
+        <h3>Create post</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+            {{ form.content.label_tag }}<br>
+            {{ form.content|attr:"class:form-control"}}
+            {% for error in form.content.errors %}
+                <p style="color: red">{{ error }}</p>
+            {% endfor %}
+            </div>
+            {% if refers_to %}
+                <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
+            {% endif %}
+            {% if parent %}
+                <input type="hidden" name="parent" value="{{ parent }}"><br>
+            {% endif %}
+            <div class="form-group">
+                <input type="submit" class="btnSubmit" value="Create post" />
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

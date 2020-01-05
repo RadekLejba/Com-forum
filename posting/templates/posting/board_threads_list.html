@@ -3,12 +3,21 @@
 {% block title %}Create post{% endblock %}
 
 {% block content %}
-<ul>
-{% for thread in object_list %}
-    <li>{{ thread }}</li>
-{% endfor %}
-</ul>
-<a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
-    <button class="btn-lg btn-outline-primary col-lg-12" type="submit">Create Thread</button>
-</a>
+<div class="row my-2">
+    <ul class="list-inline">
+    <a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
+        <button class="btn btn-outline-dark col-lg-12" type="submit">Create Thread</button>
+    </a>
+    {% for object in object_list %}
+        <li class="media">
+          <img src="https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-600w-1389188336.jpg" class="align-self-start mr-3 img-fluid img-thumbnail" alt="...">
+          <div class="media-body">
+            <h5 class="media-title">{{ object.name }}</h5>
+            <p>{{ object.starting_post.content }}</p>
+            <a href="{% url 'posting:thread' pk=object.id board_pk=board_pk%}" class="btn btn-primary">Read more...</a>
+          </div>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
 {% endblock %}

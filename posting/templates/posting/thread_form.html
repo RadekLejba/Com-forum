@@ -1,5 +1,33 @@
-<form method="post">{% csrf_token %}
-    {{ form.name }}
-    {{ post_form.content}}
-    <input type="submit" value="Save">
-</form>
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Create Thread{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Create thread</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}<br>
+                {{ form.name|attr:"class:form-control" }}
+                {% for error in form.name.errors %}
+                    <p style="color: red">{{ error }}</p>
+                {% endfor %}
+            </div>
+                <div class="form-group">
+                {{ post_form.content.label_tag }}<br>
+                {{ post_form.content|attr:"class:form-control"}}
+                {% for error in post_form.content.errors %}
+                    <p style="color: red">{{ error }}</p>
+                {% endfor %}
+                </div>
+            <div class="form-group">
+                <input type="submit" class="btnSubmit" value="Create thread" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
