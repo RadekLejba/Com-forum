@@ -28,19 +28,41 @@ class PostingTestMixin(TestCase):
 
 class ModelsTestCase(PostingTestMixin):
     def test_thread_absolute_url(self):
-        self.thread = Thread.objects.create(
+        thread = Thread.objects.create(
             author=self.user,
             board=self.board,
             name='test_thread',
         )
-        self.post = Post.objects.create(author=self.user, thread=self.thread)
 
         self.assertEqual(
-            self.thread.get_absolute_url(),
+            thread.get_absolute_url(),
             reverse(
                 'posting:thread',
-                kwargs={'board_pk': self.board.pk, 'pk': self.thread.pk},
+                kwargs={'board_pk': self.board.pk, 'pk': thread.pk},
             )
+        )
+
+    def test_thread_starting_post(self):
+        thread = Thread.objects.create(
+            author=self.user,
+            board=self.board,
+            name='test_thread',
+        )
+        post = Post.objects.create(
+            author=self.user,
+            content='lorem ipsum',
+            thread=thread,
+            starting_post=True,
+        )
+        Post.objects.create(
+            author=self.user,
+            content='doesent matter',
+            thread=thread,
+        )
+
+        self.assertEqual(
+            thread.starting_post,
+            post
         )
 
 

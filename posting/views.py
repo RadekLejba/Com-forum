@@ -9,12 +9,9 @@ from posting.forms import PostForm
 from posting.models import Board, Thread, Post
 
 
-# Will be replaced in near future with rest API
-class TemporaryIndexView(ListView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['boards'] = Board.objects.all()
-        return context
+class OverboardView(BaseViewMixin, ListView):
+    model = Thread
+    template_name = 'posting/overboard.html'
 
 
 class BoardThreadsListView(BaseViewMixin, ListView):
@@ -102,8 +99,3 @@ class CreatePostView(BaseViewMixin, CreateView):
         context['refers_to'] = self.request.GET.get('refers_to')
         context['parent'] = self.request.GET.get('parent')
         return context
-
-
-class OverboardView(BaseViewMixin, TemporaryIndexView):
-    model = Thread
-    template_name = 'posting/overboard.html'

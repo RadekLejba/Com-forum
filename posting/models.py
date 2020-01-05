@@ -27,6 +27,10 @@ class Thread(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def starting_post(self):
+        return self.post_set.filter(starting_post=True).first()
+
     def get_absolute_url(self):
         return reverse(
             'posting:thread',
