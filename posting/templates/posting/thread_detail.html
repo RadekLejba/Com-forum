@@ -7,6 +7,11 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <h3>{{ object.author}}</h3>
+            {% if perms.posting.change_thread or object.author == user %}
+                <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
+                    edit
+                </a>
+            {% endif %}
             <h4>{{ starting_post.content }}</h4>
                 <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
                     <button class="btn btn-outline-dark" type="submit">Respond</button>
@@ -16,7 +21,11 @@
                     <li>
                         <a target="_blank" href="#">{{ parent.author }}</a>
                         <a href="#" class="float-right">{{ parent.created }}</a>
-                        <a href="#" class="float-right">{{ parent.id }}</a>
+                        {% if perms.posting.change_post or parent.author == user %}
+                            <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=parent.pk%}">
+                                edit
+                            </a>
+                        {% endif %}
                         <p>{{ parent.content }}</p>
                         <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ parent.id }}&parent={{ parent.id }}">
                             <button class="btn btn-outline-dark" type="submit">Respond</button>
@@ -26,7 +35,11 @@
                                 <ul class="timeline">
                                     <a target="_blank" href="#">{{ child.author }}</a>
                                     <a href="#" class="float-right">{{ child.created }}</a>
-                                    <a href="#" class="float-right">{{ child.id }}</a>
+                                    {% if perms.posting.change_post or child.author == user %}
+                                        <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=child.pk%}">
+                                            edit
+                                        </a>
+                                    {% endif %}
                                     <p>{{ child.content }}</p>
                                     <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ children.id }}&parent={{ parent.id }}">
                                         <button class="btn btn-outline-dark" type="submit">Respond</button>
