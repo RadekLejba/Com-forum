@@ -11,7 +11,7 @@ class Board(models.Model):
     created = models.DateField(default=now)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.CharField(max_length=500, blank=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, primary_key=True)
 
     def __str__(self):
         return self.name
@@ -74,7 +74,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         if self.starting_post:
             try:
-                self.thread.post_set.get(starting_post=True)
+                self.thread.post_set.exclude(id=self.id).get(starting_post=True)
             except Post.DoesNotExist:
                 pass
             else:

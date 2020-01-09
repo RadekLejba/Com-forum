@@ -136,7 +136,7 @@ STATICFILES_FINDERS = [
 
 
 # Other settings.
-
+MODERATOR_GROUP_NAME = 'Moderator'
 LOGOUT_REDIRECT_URL = 'users:login'
 # !IMPORTANT! Remove on production.
 AUTH_PASSWORD_VALIDATORS = []

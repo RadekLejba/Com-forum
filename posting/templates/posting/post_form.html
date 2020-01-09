@@ -14,7 +14,7 @@
             {{ form.content.label_tag }}<br>
             {{ form.content|attr:"class:form-control"}}
             {% for error in form.content.errors %}
-                <p style="color: red">{{ error }}</p>
+                <p>{{ error }}</p>
             {% endfor %}
             </div>
             {% if refers_to %}

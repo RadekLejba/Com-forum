@@ -1,7 +1,7 @@
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 
 from forum.views import BaseViewMixin
@@ -79,6 +79,33 @@ class ThreadDetailView(BaseViewMixin, DetailView):
         return context
 
 
+class UpdateThreadView(BaseViewMixin, UpdateView):
+    model = Thread
+    fields = ['name']
+
+    def get_context_data(self, **kwargs):
+        thread = self.get_object()
+        context = super().get_context_data(**kwargs)
+
+        context['post_form'] = PostForm(instance=thread.starting_post)
+        return context
+
+    def dispatch(self, request, **kwargs):
+        thread = self.get_object()
+        if (
+            thread.author == request.user or
+            request.user.has_perm('posting.change_thread')
+        ):
+            return super().dispatch(request, **kwargs)
+        return HttpResponseForbidden()
+
+    def post(self, request, **kwargs):
+        thread = self.get_object()
+        post_form = PostForm(self.request.POST, thread=thread, author=thread.starting_post.author, instance=thread.starting_post)
+        post_form.save()
+        return super().post(self, request, **kwargs)
+
+
 class CreatePostView(BaseViewMixin, CreateView):
     model = Post
     fields = ['content', 'parent', 'refers_to']
@@ -99,3 +126,17 @@ class CreatePostView(BaseViewMixin, CreateView):
         context['refers_to'] = self.request.GET.get('refers_to')
         context['parent'] = self.request.GET.get('parent')
         return context
+
+
+class UpdatePostView(BaseViewMixin, UpdateView):
+    model = Post
+    fields = ['content']
+
+    def dispatch(self, request, **kwargs):
+        post = self.get_object()
+        if (
+            post.author == request.user or
+            request.user.has_perm('posting.change_post')
+        ):
+            return super().dispatch(request, **kwargs)
+        return HttpResponseForbidden()
