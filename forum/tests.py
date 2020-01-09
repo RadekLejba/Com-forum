@@ -8,4 +8,3 @@ class TemplateTagsTestCase(TestCase):
     def test_boards_list(self):
         boards = list(Board.objects.all())
         self.assertListEqual(boards, boards_list())
-

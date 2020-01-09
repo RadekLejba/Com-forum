@@ -33,42 +33,36 @@ class Thread(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            'posting:thread',
-            kwargs={'board_pk': self.board.pk, 'pk': self.pk},
+            "posting:thread", kwargs={"board_pk": self.board.pk, "pk": self.pk},
         )
 
 
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField(default='')
+    content = models.TextField(default="")
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
     hidden = models.BooleanField(null=True, blank=True)
     parent = models.ForeignKey(
-        'self',
+        "self",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name='children',
+        related_name="children",
     )
     refers_to = models.ManyToManyField(
-        'self',
-        related_name='referrers_set',
-        blank=True,
+        "self", related_name="referrers_set", blank=True,
     )
     starting_post = models.BooleanField(default=False)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
 
     def get_absolute_url(self):
-        return '{}?{}'.format(
+        return "{}?{}".format(
             reverse(
-                'posting:thread',
-                kwargs={
-                    'board_pk': self.thread.board.pk,
-                    'pk': self.thread.pk
-                },
+                "posting:thread",
+                kwargs={"board_pk": self.thread.board.pk, "pk": self.thread.pk},
             ),
-            urlencode({'post_id': self.pk}),
+            urlencode({"post_id": self.pk}),
         )
 
     def save(self, *args, **kwargs):
@@ -79,8 +73,6 @@ class Post(models.Model):
                 pass
             else:
                 raise CannotCreateException(
-                    'Multiple starting posts in thread {}'.format(
-                        self.thread.id
-                    )
+                    "Multiple starting posts in thread {}".format(self.thread.id)
                 )
         return super().save(*args, **kwargs)

@@ -8,7 +8,9 @@ class PostInline(admin.TabularInline):
 
 
 class ThreadAdmin(admin.ModelAdmin):
-    inlines = [PostInline, ]
+    inlines = [
+        PostInline,
+    ]
 
 
 admin.site.register(Board)
