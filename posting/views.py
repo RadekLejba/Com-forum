@@ -1,12 +1,23 @@
 from django.http import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
+from django.urls import reverse_lazy
 
 from forum.views import BaseViewMixin
 from posting.forms import PostForm
 from posting.models import Board, Thread, Post
+
+
+class CrudPermissionViewMixin(BaseViewMixin):
+    permission = ""
+
+    def dispatch(self, request, **kwargs):
+        obj = self.get_object()
+        if obj.author == request.user or request.user.has_perm(self.permission):
+            return super().dispatch(request, **kwargs)
+        return HttpResponseForbidden()
 
 
 class OverboardView(BaseViewMixin, ListView):
@@ -72,9 +83,10 @@ class ThreadDetailView(BaseViewMixin, DetailView):
         return context
 
 
-class UpdateThreadView(BaseViewMixin, UpdateView):
+class UpdateThreadView(CrudPermissionViewMixin, UpdateView):
     model = Thread
     fields = ["name"]
+    permission = "posting.change_thread"
 
     def get_context_data(self, **kwargs):
         thread = self.get_object()
@@ -82,14 +94,6 @@ class UpdateThreadView(BaseViewMixin, UpdateView):
 
         context["post_form"] = PostForm(instance=thread.starting_post)
         return context
-
-    def dispatch(self, request, **kwargs):
-        thread = self.get_object()
-        if thread.author == request.user or request.user.has_perm(
-            "posting.change_thread"
-        ):
-            return super().dispatch(request, **kwargs)
-        return HttpResponseForbidden()
 
     def post(self, request, **kwargs):
         thread = self.get_object()
@@ -101,6 +105,19 @@ class UpdateThreadView(BaseViewMixin, UpdateView):
         )
         post_form.save()
         return super().post(self, request, **kwargs)
+
+
+class DeleteThreadView(CrudPermissionViewMixin, DeleteView):
+    model = Thread
+    permission = "posting.delete_thread"
+    template_name = "posting/confirm_delete.html"
+
+    def dispatch(self, request, **kwargs):
+        self.success_url = reverse_lazy(
+            "posting:board_threads_list",
+            kwargs={"board_pk": kwargs.get("board_pk")},
+        )
+        return super().dispatch(request, **kwargs)
 
 
 class CreatePostView(BaseViewMixin, CreateView):
@@ -125,12 +142,21 @@ class CreatePostView(BaseViewMixin, CreateView):
         return context
 
 
-class UpdatePostView(BaseViewMixin, UpdateView):
+class UpdatePostView(CrudPermissionViewMixin, UpdateView):
     model = Post
     fields = ["content"]
+    permission = "posting.change_post"
+
+
+class DeletePostView(CrudPermissionViewMixin, DeleteView):
+    model = Post
+    permission = "posting.delete_post"
+    template_name = "posting/confirm_delete.html"
 
     def dispatch(self, request, **kwargs):
-        post = self.get_object()
-        if post.author == request.user or request.user.has_perm("posting.change_post"):
-            return super().dispatch(request, **kwargs)
-        return HttpResponseForbidden()
+        thread_pk = self.get_object().thread.pk
+        self.success_url = reverse_lazy(
+            "posting:thread",
+            kwargs={"board_pk": kwargs.get("board_pk"), "pk": thread_pk},
+        )
+        return super().dispatch(request, **kwargs)

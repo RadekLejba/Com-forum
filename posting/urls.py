@@ -22,6 +22,11 @@ urlpatterns = [
         name="thread",
     ),
     path(
+        r"board/<str:board_pk>/thread/<int:pk>/delete",
+        views.DeleteThreadView.as_view(),
+        name="delete_thread",
+    ),
+    path(
         r"board/<str:board_pk>/thread/<int:pk>/update",
         views.UpdateThreadView.as_view(),
         name="update_thread",
@@ -35,5 +40,10 @@ urlpatterns = [
         r"board/<str:board_pk>/thread/<int:thread_pk>/post/<int:pk>/update",
         views.UpdatePostView.as_view(),
         name="update_post",
+    ),
+    path(
+        r"board/<str:board_pk>/thread/<int:thread_pk>/post/<int:pk>/delete",
+        views.DeletePostView.as_view(),
+        name="delete_post",
     ),
 ]

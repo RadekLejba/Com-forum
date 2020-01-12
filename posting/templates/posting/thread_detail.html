@@ -12,6 +12,12 @@
                     edit
                 </a>
             {% endif %}
+            <br/>
+            {% if perms.posting.delete_thread or object.author == user %}
+                <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
+                    delete
+                </a>
+            {% endif %}
             <h4>{{ starting_post.content }}</h4>
                 <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
                     <button class="btn btn-outline-dark" type="submit">Respond</button>
@@ -26,6 +32,12 @@
                                 edit
                             </a>
                         {% endif %}
+                        <br/>
+                        {% if perms.posting.delete_post or parent.author == user %}
+                            <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=parent.pk%}">
+                                delete
+                            </a>
+                        {% endif %}
                         <p>{{ parent.content }}</p>
                         <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ parent.id }}&parent={{ parent.id }}">
                             <button class="btn btn-outline-dark" type="submit">Respond</button>
@@ -38,6 +50,12 @@
                                     {% if perms.posting.change_post or child.author == user %}
                                         <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=child.pk%}">
                                             edit
+                                        </a>
+                                    {% endif %}
+                                    <br/>
+                                    {% if perms.posting.delete_post or child.author == user %}
+                                        <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=child.pk%}">
+                                            delete
                                         </a>
                                     {% endif %}
                                     <p>{{ child.content }}</p>
