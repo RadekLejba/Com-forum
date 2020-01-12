@@ -15,21 +15,31 @@ from posting.models import Board, Thread, Post
 class PostingTestMixin(TestCase):
     def setUp(self):
         User = get_user_model()
-        can_change_post_perm = Permission.objects.get(name="Can change post")
+        moderator_permissions = [
+            Permission.objects.get(name="Can change post"),
+            Permission.objects.get(name="Can delete post"),
+            Permission.objects.get(name="Can change thread"),
+            Permission.objects.get(name="Can delete thread"),
+        ]
         self.client = Client()
         self.user = User.objects.create(username="testuser01")
-        self.user.set_password("testpassword")
+        self.password = "testpassword"
+        self.user.set_password(self.password)
         self.user.save()
         self.user2 = User.objects.create(username="testuser02")
-        self.user2.set_password("testpassword")
+        self.user2.set_password(self.password)
         self.user2.save()
         self.moderator = User.objects.create(username="moderatoruser")
-        self.moderator.set_password("testpassword")
-        self.moderator.user_permissions.add(can_change_post_perm)
+        self.moderator.set_password(self.password)
+        for permission in moderator_permissions:
+            self.moderator.user_permissions.add(permission)
         self.moderator.save()
         self.board = Board.objects.create(creator=self.user, name="testboard",)
         self.thread_name = "test_thread"
         self.post_content = "This is test post content"
+        self.board_threads_list_url = reverse(
+            "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
+        )
 
 
 class ModelsTestCase(PostingTestMixin):
@@ -89,9 +99,6 @@ class FormsTestCase(PostingTestMixin):
 class BoardViewsTestCase(PostingTestMixin):
     def setUp(self):
         super().setUp()
-        self.board_threads_list_url = reverse(
-            "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
-        )
         self.board2 = Board.objects.create(creator=self.user, name="testboard2",)
         self.thread = Thread.objects.create(
             author=self.user, board=self.board, name=self.thread_name,
@@ -104,7 +111,7 @@ class BoardViewsTestCase(PostingTestMixin):
         )
 
     def test_board_threads_list(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
         expected_threads = [self.thread, self.thread2]
 
         response = self.client.get(self.board_threads_list_url)
@@ -118,6 +125,9 @@ class PostViewsTestCase(PostingTestMixin):
         super().setUp()
         self.thread = Thread.objects.create(
             author=self.user, board=self.board, name=self.thread_name,
+        )
+        self.thread_details_url = reverse(
+            "posting:thread", kwargs={"board_pk": self.board.pk, "pk": self.thread.pk},
         )
         self.create_url = reverse(
             "posting:create_post",
@@ -133,9 +143,17 @@ class PostViewsTestCase(PostingTestMixin):
                 "pk": self.post.pk,
             },
         )
+        self.delete_post_url = reverse(
+            "posting:delete_post",
+            kwargs={
+                "board_pk": self.board.pk,
+                "thread_pk": self.thread.pk,
+                "pk": self.post.pk,
+            },
+        )
 
     def test_context(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response_refers_to_post = self.client.get(
             self.create_url, {"refers_to": self.post.id}
@@ -153,7 +171,7 @@ class PostViewsTestCase(PostingTestMixin):
         )
 
     def test_create_post(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(self.create_url, {"content": self.post_content})
         post_id = ast.literal_eval(response.url.split("post_id=")[1])
@@ -164,7 +182,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(post.author, self.user)
 
     def test_create_post_with_parent_and_referrers(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(
             self.create_url,
@@ -183,7 +201,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(post.author, self.user)
 
     def test_create_with_non_existing_thread(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
         post_quantity = Post.objects.all().count()
         non_existing_thread_url = reverse(
             "posting:create_post",
@@ -211,7 +229,7 @@ class PostViewsTestCase(PostingTestMixin):
         )
 
     def test_edit_post_by_author(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response_get = self.client.get(self.update_post_url)
         response_post = self.client.post(
@@ -222,7 +240,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(response_post.status_code, HTTPStatus.FOUND)
 
     def test_edit_post_by_user_with_permissions(self):
-        self.client.login(username=self.moderator.username, password="testpassword")
+        self.client.login(username=self.moderator.username, password=self.password)
         response_get = self.client.get(self.update_post_url)
         response_post = self.client.post(
             self.update_post_url, {"content": self.post_content,},
@@ -232,7 +250,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(response_post.status_code, HTTPStatus.FOUND)
 
     def test_edit_post_by_user_without_permissions(self):
-        self.client.login(username=self.user2.username, password="testpassword")
+        self.client.login(username=self.user2.username, password=self.password)
         response_get = self.client.get(self.update_post_url)
         response_post = self.client.post(
             self.update_post_url, {"content": self.post_content,},
@@ -240,6 +258,29 @@ class PostViewsTestCase(PostingTestMixin):
 
         self.assertEqual(response_get.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response_post.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_delete_post_by_author(self):
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.delete(self.delete_post_url)
+
+        self.assertEqual(response.url, self.thread_details_url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_delete_post_by_user_with_permissions(self):
+        self.client.login(username=self.moderator.username, password=self.password)
+
+        response = self.client.delete(self.delete_post_url)
+
+        self.assertEqual(response.url, self.thread_details_url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_delete_post_by_user_without_permissions(self):
+        self.client.login(username=self.user2.username, password=self.password)
+
+        response = self.client.delete(self.delete_post_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
 
 class ThreadViewsTestCase(PostingTestMixin):
@@ -261,6 +302,11 @@ class ThreadViewsTestCase(PostingTestMixin):
             "posting:update_thread",
             kwargs={"board_pk": self.board.pk, "pk": self.thread1.pk},
         )
+        self.delete_thread_url = reverse(
+            "posting:delete_thread",
+            kwargs={"board_pk": self.board.pk, "pk": self.thread1.pk},
+        )
+        self.updated_content = "This is updated content"
 
     def test_authentication(self):
         self.client.post(
@@ -283,7 +329,7 @@ class ThreadViewsTestCase(PostingTestMixin):
         )
 
     def test_create_thread(self):
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(
             self.create_thread_url,
@@ -308,7 +354,7 @@ class ThreadViewsTestCase(PostingTestMixin):
         post_out_of_thread = Post.objects.create(
             author=self.user, thread=self.thread2, content=self.post_content,
         )
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(self.thread_details_url)
         posts = response.context.get("posts")
 
@@ -342,7 +388,7 @@ class ThreadViewsTestCase(PostingTestMixin):
         post_4 = Post.objects.create(
             author=self.user, thread=self.thread1, content=self.post_content,
         )
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
         expected_posts = {
             post_1: [post_2, post_3],
             post_4: [],
@@ -363,28 +409,86 @@ class ThreadViewsTestCase(PostingTestMixin):
             content=self.post_content,
             starting_post=True,
         )
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.get(self.update_thread_url)
         post_form = response.context.get("post_form")
 
         self.assertEqual(post_form.instance.content, post.content)
 
-    def test_update_thread(self):
-        updated_content = "This is updated content"
+    def test_update_thread_by_author(self):
         post = Post.objects.create(
             author=self.user,
             thread=self.thread1,
             content=self.post_content,
             starting_post=True,
         )
-        self.client.login(username=self.user.username, password="testpassword")
+        self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(
             self.update_thread_url,
-            {"name": self.thread_name, "content": updated_content},
+            {"name": self.thread_name, "content": self.updated_content},
         )
         post.refresh_from_db()
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertEqual(post.content, updated_content)
+        self.assertEqual(post.content, self.updated_content)
+
+    def test_update_thread_by_user_with_permission(self):
+        post = Post.objects.create(
+            author=self.user,
+            thread=self.thread1,
+            content=self.post_content,
+            starting_post=True,
+        )
+        self.client.login(username=self.moderator.username, password=self.password)
+
+        response = self.client.post(
+            self.update_thread_url,
+            {"name": self.thread_name, "content": self.updated_content},
+        )
+        post.refresh_from_db()
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(post.content, self.updated_content)
+
+    def test_update_thread_by_user_without_permission(self):
+        post = Post.objects.create(
+            author=self.user,
+            thread=self.thread1,
+            content=self.post_content,
+            starting_post=True,
+        )
+        self.client.login(username=self.user2.username, password=self.password)
+
+        response = self.client.post(
+            self.update_thread_url,
+            {"name": self.thread_name, "content": self.updated_content},
+        )
+        post.refresh_from_db()
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(post.content, self.post_content)
+
+    def test_delete_thread_by_author(self):
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.delete(self.delete_thread_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.url, self.board_threads_list_url)
+
+    def test_delete_thread_by_user_with_permission(self):
+        self.client.login(username=self.moderator.username, password=self.password)
+
+        response = self.client.delete(self.delete_thread_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.url, self.board_threads_list_url)
+
+    def test_delete_thread_by_user_without_permission(self):
+        self.client.login(username=self.user2.username, password=self.password)
+
+        response = self.client.delete(self.delete_thread_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
