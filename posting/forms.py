@@ -11,7 +11,7 @@ class PostForm(ModelForm):
 
     class Meta:
         model = Post
-        fields = ["content", "parent", "refers_to"]
+        fields = ["content", "parent", "refers_to", "file"]
 
     def save(self):
         post = super().save(commit=False)

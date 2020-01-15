@@ -31,6 +31,11 @@ class Thread(models.Model):
     def starting_post(self):
         return self.post_set.filter(starting_post=True).first()
 
+    @property
+    def file(self):
+        if self.starting_post:
+            return self.starting_post.file
+
     def get_absolute_url(self):
         return reverse(
             "posting:thread", kwargs={"board_pk": self.board.pk, "pk": self.pk},
@@ -55,6 +60,7 @@ class Post(models.Model):
     )
     starting_post = models.BooleanField(default=False)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
+    file = models.ImageField(blank=True)
 
     def get_absolute_url(self):
         return "{}?{}".format(

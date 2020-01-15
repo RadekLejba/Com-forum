@@ -6,63 +6,42 @@
 <div class="container mt-5 mb-5">
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <h3>{{ object.author}}</h3>
-            {% if perms.posting.change_thread or object.author == user %}
-                <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
-                    edit
-                </a>
-            {% endif %}
-            <br/>
-            {% if perms.posting.delete_thread or object.author == user %}
-                <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
-                    delete
-                </a>
-            {% endif %}
-            <h4>{{ starting_post.content }}</h4>
-                <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
-                    <button class="btn btn-outline-dark" type="submit">Respond</button>
-                </a>
+            <div>
+                <row>
+                    <h3>{{ object.author}}</h3>
+                    {% if perms.posting.change_thread or object.author == user %}
+                        <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
+                            edit
+                        </a>
+                    {% endif %}
+                    <br/>
+                    {% if perms.posting.delete_thread or object.author == user %}
+                        <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
+                            delete
+                        </a>
+                    {% endif %}
+                </row>
+                {% if starting_post.file %}
+                    <row>
+                        <img src="{{ starting_post.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
+                    </row>
+                {% endif %}
+                <row>
+                    <h4>{{ starting_post.content }}</h4>
+                    <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
+                        <button class="btn btn-outline-dark" type="submit">Respond</button>
+                    </a>
+                </row>
+            </div>
             <ul class="timeline">
                 {% for parent, children in posts.items %}
                     <li>
-                        <a target="_blank" href="#">{{ parent.author }}</a>
-                        <a href="#" class="float-right">{{ parent.created }}</a>
-                        {% if perms.posting.change_post or parent.author == user %}
-                            <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=parent.pk%}">
-                                edit
-                            </a>
-                        {% endif %}
-                        <br/>
-                        {% if perms.posting.delete_post or parent.author == user %}
-                            <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=parent.pk%}">
-                                delete
-                            </a>
-                        {% endif %}
-                        <p>{{ parent.content }}</p>
-                        <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ parent.id }}&parent={{ parent.id }}">
-                            <button class="btn btn-outline-dark" type="submit">Respond</button>
-                        </a>
+                        {% include "posting/_item.html" with item=parent %}
                         {% if children %}
                             {% for child in children %}
                                 <ul class="timeline">
-                                    <a target="_blank" href="#">{{ child.author }}</a>
-                                    <a href="#" class="float-right">{{ child.created }}</a>
-                                    {% if perms.posting.change_post or child.author == user %}
-                                        <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=child.pk%}">
-                                            edit
-                                        </a>
-                                    {% endif %}
-                                    <br/>
-                                    {% if perms.posting.delete_post or child.author == user %}
-                                        <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=child.pk%}">
-                                            delete
-                                        </a>
-                                    {% endif %}
-                                    <p>{{ child.content }}</p>
-                                    <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ children.id }}&parent={{ parent.id }}">
-                                        <button class="btn btn-outline-dark" type="submit">Respond</button>
-                                    </a>
-                                </ul>>
+                                    {% include "posting/_item.html" with item=child %}
+                                </ul>
                             {% endfor %}
                         {% endif %}
                     </li>

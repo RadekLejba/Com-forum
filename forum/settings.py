@@ -128,6 +128,8 @@ STATICFILES_FINDERS = [
     "sass_processor.finders.CssFinder",
 ]
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Other settings.
 MODERATOR_GROUP_NAME = "Moderator"

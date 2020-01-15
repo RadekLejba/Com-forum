@@ -1,0 +1,30 @@
+{% load forum_tags %}
+
+<div>
+    <row>
+        <a target="_blank" href="#">{{ item.author }}</a>
+        <a href="#" class="float-right">{{ item.created }}</a>
+        {% if perms.posting.change_post or item.author == user %}
+            <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
+                edit
+            </a>
+        {% endif %}
+        <br/>
+        {% if perms.posting.delete_post or item.author == user %}
+            <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
+                delete
+            </a>
+        {% endif %}
+    </row>
+    {% if item.file %}
+        <row>
+            <img src="{{ item.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
+        </row>
+    {% endif %}
+    <row>
+        <p>{{ item.content }}</p>
+        <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ item.id }}&parent={% item_or_parent_id item %}">
+            <button class="btn btn-outline-dark" type="submit">Respond</button>
+        </a>
+    </row>
+</div>

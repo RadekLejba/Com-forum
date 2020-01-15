@@ -8,7 +8,7 @@
 <div class="row">
     <div class="col-md-12">
         <h3>Create thread</h3>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
                 {{ form.name.label_tag }}<br>
@@ -17,13 +17,20 @@
                     <p>{{ error }}</p>
                 {% endfor %}
             </div>
-                <div class="form-group">
+            <div class="form-group">
                 {{ post_form.content.label_tag }}<br>
                 {{ post_form.content|attr:"class:form-control"}}
                 {% for error in post_form.content.errors %}
                     <p>{{ error }}</p>
                 {% endfor %}
-                </div>
+            </div>
+            <div class="form-group">
+                {{ post_form.file.label_tag }}<br>
+                {{ post_form.file|attr:"class:form-control"}}
+                {% for error in post_form.file.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
             <div class="form-group">
                 <input type="submit" class="btnSubmit" value="Create thread" />
             </div>
