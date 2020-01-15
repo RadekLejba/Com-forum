@@ -1,8 +1,10 @@
 import ast
 from http import HTTPStatus
+import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
@@ -14,6 +16,10 @@ from posting.models import Board, Thread, Post
 
 class PostingTestMixin(TestCase):
     def setUp(self):
+        current_dir = os.path.dirname(__file__)
+        filename = "file.jpg"
+        self.image_path = os.path.join(current_dir, filename)
+        self.file = open(self.image_path, "rb")
         User = get_user_model()
         moderator_permissions = [
             Permission.objects.get(name="Can change post"),
@@ -40,6 +46,9 @@ class PostingTestMixin(TestCase):
         self.board_threads_list_url = reverse(
             "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
         )
+
+    def tearDown(self):
+        self.file.close()
 
 
 class ModelsTestCase(PostingTestMixin):
@@ -333,7 +342,11 @@ class ThreadViewsTestCase(PostingTestMixin):
 
         response = self.client.post(
             self.create_thread_url,
-            {"name": self.thread_name, "content": self.post_content},
+            {
+                "name": self.thread_name,
+                "content": self.post_content,
+                "file": self.file,
+            },
         )
         thread = Thread.objects.get(name=self.thread_name)
         starting_post = Post.objects.get(thread=thread, starting_post=True)
@@ -343,6 +356,10 @@ class ThreadViewsTestCase(PostingTestMixin):
         self.assertEqual(thread.name, self.thread_name)
         self.assertEqual(thread.author, self.user)
         self.assertEqual(starting_post.content, self.post_content)
+        self.assertIsNotNone(starting_post.file)
+
+        # tearDown
+        starting_post.file.storage.delete(starting_post.file.name)
 
     def test_thread_details_without_parent_child(self):
         post_1_in_thread = Post.objects.create(

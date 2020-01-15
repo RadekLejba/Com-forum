@@ -1,0 +1,14 @@
+<li class="media">
+    <div class="col-sm-4 px-0">
+        {% if object.file %}
+            <img src="{{ object.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
+        {% endif %}
+    </div>
+    <div class="media-body">
+        <h5 class="media-title">{{ object.name }}</h5>
+        <p>{{ object.starting_post.content }}</p>
+        <a href="{% url 'posting:thread' pk=object.id board_pk=object.board.pk%}" class="btn btn-primary">
+            Read more...
+        </a>
+    </div>
+</li>

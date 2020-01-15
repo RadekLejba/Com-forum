@@ -23,6 +23,7 @@ class CrudPermissionViewMixin(BaseViewMixin):
 class OverboardView(BaseViewMixin, ListView):
     model = Thread
     template_name = "posting/overboard.html"
+    ordering = ['-created_on']
 
 
 class BoardThreadsListView(BaseViewMixin, ListView):
@@ -55,7 +56,9 @@ class CreateThreadView(BaseViewMixin, CreateView):
         form.instance.board = board
         form.instance.author = author
         thread = form.save()
-        post_form = PostForm(self.request.POST, thread=thread, author=author,)
+        post_form = PostForm(
+            self.request.POST, self.request.FILES, thread=thread, author=author,
+        )
         post_form.instance.starting_post = True
         post_form.save()
         return redirect(thread)
@@ -77,7 +80,7 @@ class ThreadDetailView(BaseViewMixin, DetailView):
             context["starting_post"] = None
         parentless_posts = posts.filter(
             thread=self.kwargs.get("pk"), starting_post=False, parent=None,
-        ).prefetch_related("children")
+        ).order_by("created_on").prefetch_related("children")
         for post in parentless_posts:
             context["posts"][post] = [child for child in post.children.all()]
         return context
@@ -114,15 +117,14 @@ class DeleteThreadView(CrudPermissionViewMixin, DeleteView):
 
     def dispatch(self, request, **kwargs):
         self.success_url = reverse_lazy(
-            "posting:board_threads_list",
-            kwargs={"board_pk": kwargs.get("board_pk")},
+            "posting:board_threads_list", kwargs={"board_pk": kwargs.get("board_pk")},
         )
         return super().dispatch(request, **kwargs)
 
 
 class CreatePostView(BaseViewMixin, CreateView):
     model = Post
-    fields = ["content", "parent", "refers_to"]
+    fields = ["content", "parent", "refers_to", "file"]
 
     def form_valid(self, form):
         thread_pk = self.kwargs.get("thread_pk")

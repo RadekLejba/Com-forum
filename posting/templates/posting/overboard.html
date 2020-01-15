@@ -6,14 +6,7 @@
 <div class="row my-2">
     <ul class="list-inline">
     {% for object in object_list %}
-        <li class="media">
-          <img src="https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-600w-1389188336.jpg" class="align-self-start mr-3 img-fluid img-thumbnail" alt="...">
-          <div class="media-body">
-            <h5 class="media-title">{{ object.name }}</h5>
-            <p>{{ object.starting_post.content }}</p>
-            <a href="{% url 'posting:thread' pk=object.id board_pk=object.board.pk%}" class="btn btn-primary">Read more...</a>
-          </div>
-        </li>
+        {% include 'posting/_thread.html' %}
     {% endfor %}
     </ul>
 </div>
