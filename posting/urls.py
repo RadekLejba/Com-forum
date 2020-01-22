@@ -7,6 +7,9 @@ app_name = "posting"
 urlpatterns = [
     path(r"boards/", views.OverboardView.as_view(), name="overboard"),
     path(
+        r"observed/", views.ObservedThreadsListView.as_view(), name="observed_threads"
+    ),
+    path(
         r"board/<str:board_pk>/threads",
         views.BoardThreadsListView.as_view(),
         name="board_threads_list",

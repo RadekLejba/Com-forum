@@ -4,7 +4,6 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
@@ -46,6 +45,7 @@ class PostingTestMixin(TestCase):
         self.board_threads_list_url = reverse(
             "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
         )
+        self.observed_threads_list_url = reverse("posting:observed_threads",)
 
     def tearDown(self):
         self.file.close()
@@ -127,6 +127,28 @@ class BoardViewsTestCase(PostingTestMixin):
 
         self.assertCountEqual(list(response.context["thread_list"]), expected_threads)
         self.assertEqual(response.context["board_pk"], self.board.pk)
+
+    def test_board_threads_list_with_observed(self):
+        self.client.login(username=self.user.username, password=self.password)
+        self.user.userprofile.observed_threads.add(self.thread)
+        self.user.userprofile.observed_threads.add(self.thread3)
+
+        response = self.client.get(self.board_threads_list_url)
+
+        self.assertListEqual(
+            list(response.context["observed_threads"]), [self.thread, self.thread3]
+        )
+
+    def test_observed_threads_list(self):
+        self.client.login(username=self.user.username, password=self.password)
+        self.user.userprofile.observed_threads.add(self.thread)
+        self.user.userprofile.observed_threads.add(self.thread3)
+
+        response = self.client.get(self.observed_threads_list_url)
+
+        self.assertListEqual(
+            list(response.context["object_list"]), [self.thread, self.thread3]
+        )
 
 
 class PostViewsTestCase(PostingTestMixin):

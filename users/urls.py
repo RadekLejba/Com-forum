@@ -1,7 +1,7 @@
 from django.contrib.auth import views as authentication_views
 from django.urls import path
 
-from users.views import SignupView
+from users.views import AddToObservedView, SignupView, RemoveFromObservedView
 
 
 app_name = "users"
@@ -43,4 +43,10 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path(r"signup/", SignupView.as_view(), name="signup"),
+    path(r"add_to_observed/", AddToObservedView.as_view(), name="add_to_observed"),
+    path(
+        r"remove_from_observed/",
+        RemoveFromObservedView.as_view(),
+        name="remove_from_observed",
+    ),
 ]

@@ -134,5 +134,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Other settings.
 MODERATOR_GROUP_NAME = "Moderator"
 LOGOUT_REDIRECT_URL = "users:login"
+AUTH_PROFILE_MODULE = "users.UserProfile"
 # !IMPORTANT! Remove on production.
 AUTH_PASSWORD_VALIDATORS = []

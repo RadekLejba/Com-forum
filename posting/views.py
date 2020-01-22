@@ -20,22 +20,34 @@ class CrudPermissionViewMixin(BaseViewMixin):
         return HttpResponseForbidden()
 
 
-class OverboardView(BaseViewMixin, ListView):
+class ThreadListViewMixin(BaseViewMixin, ListView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["board_pk"] = self.kwargs.get("board_pk")
+        context[
+            "observed_threads"
+        ] = self.request.user.userprofile.observed_threads.all()
+        return context
+
+
+class ObservedThreadsListView(ThreadListViewMixin):
+    template_name = "posting/overboard.html"
+
+    def get_queryset(self):
+        return self.request.user.userprofile.observed_threads.all()
+
+
+class OverboardView(ThreadListViewMixin):
     model = Thread
     template_name = "posting/overboard.html"
-    ordering = ['-created_on']
+    ordering = ["-created_on"]
 
 
-class BoardThreadsListView(BaseViewMixin, ListView):
+class BoardThreadsListView(ThreadListViewMixin):
     template_name = "posting/board_threads_list.html"
 
     def get_queryset(self):
         return Thread.objects.filter(board=self.kwargs.get("board_pk"))
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["board_pk"] = self.kwargs.get("board_pk")
-        return context
 
 
 class CreateThreadView(BaseViewMixin, CreateView):
@@ -78,9 +90,13 @@ class ThreadDetailView(BaseViewMixin, DetailView):
             )
         except Post.DoesNotExist:
             context["starting_post"] = None
-        parentless_posts = posts.filter(
-            thread=self.kwargs.get("pk"), starting_post=False, parent=None,
-        ).order_by("created_on").prefetch_related("children")
+        parentless_posts = (
+            posts.filter(
+                thread=self.kwargs.get("pk"), starting_post=False, parent=None,
+            )
+            .order_by("created_on")
+            .prefetch_related("children")
+        )
         for post in parentless_posts:
             context["posts"][post] = [child for child in post.children.all()]
         return context

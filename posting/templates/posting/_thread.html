@@ -10,5 +10,18 @@
         <a href="{% url 'posting:thread' pk=object.id board_pk=object.board.pk%}" class="btn btn-primary">
             Read more...
         </a>
+        <div class="float-right favorite-container" data-thread_id="{{ object.id }}"
+             data-add-url="{% url 'users:add_to_observed' %}" data-remove-url="{% url 'users:remove_from_observed' %}">
+            {% csrf_token %}
+            {% if object in observed_threads %}
+                <a href="#" class="favorite" data-method="remove" >
+                    <i class="fas fa-eye-slash"></i>
+                </a>
+            {% else %}
+                <a href="#" class="favorite" data-method="add">
+                    <i class="fas fa-eye"></i>
+                </a>
+            {% endif %}
+        </div>
     </div>
 </li>
