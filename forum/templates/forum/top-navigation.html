@@ -6,8 +6,8 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <a class="navbar-brand" href="{% url 'posting:observed_threads' %}">Observed</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <a class="navbar-brand" href="{% url 'posting:observed_threads' %}">Observed</a>
         <ul class="navbar-nav mr-auto">
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -20,11 +20,12 @@
                 {% endfor %}
             </div>
         </ul>
+        <a class="navbar-brand" href="{% url 'users:user_profile' pk=user.pk %}">Profile</a>
         <div class="my-2 my-lg-0">
             <a href="{% url 'users:logout' %}" >
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log out</button>
             </a>
-        </form>
+        </div>
     </div>
 </nav>
 {% endif %}

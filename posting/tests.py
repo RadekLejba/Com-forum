@@ -1,6 +1,5 @@
 import ast
 from http import HTTPStatus
-import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -8,6 +7,7 @@ from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 
+from forum.tests import get_test_image_path
 from posting.exceptions import CannotCreateException
 from posting.forms import PostForm
 from posting.models import Board, Thread, Post
@@ -15,9 +15,7 @@ from posting.models import Board, Thread, Post
 
 class PostingTestMixin(TestCase):
     def setUp(self):
-        current_dir = os.path.dirname(__file__)
-        filename = "file.jpg"
-        self.image_path = os.path.join(current_dir, filename)
+        self.image_path = get_test_image_path()
         self.file = open(self.image_path, "rb")
         User = get_user_model()
         moderator_permissions = [

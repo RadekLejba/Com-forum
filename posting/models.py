@@ -2,13 +2,12 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils.http import urlencode
-from django.utils.timezone import now
 
 from posting.exceptions import CannotCreateException
 
 
 class Board(models.Model):
-    created = models.DateField(default=now)
+    created = models.DateField(auto_now_add=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.CharField(max_length=500, blank=True)
     name = models.CharField(max_length=100, primary_key=True)

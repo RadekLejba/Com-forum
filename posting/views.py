@@ -1,9 +1,12 @@
-from django.http import HttpResponseNotFound, HttpResponseForbidden
+from django.http import (
+    HttpResponseNotFound,
+    HttpResponseForbidden,
+)
 from django.shortcuts import redirect
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 from forum.views import BaseViewMixin
 from posting.forms import PostForm
@@ -18,6 +21,11 @@ class CrudPermissionViewMixin(BaseViewMixin):
         if obj.author == request.user or request.user.has_perm(self.permission):
             return super().dispatch(request, **kwargs)
         return HttpResponseForbidden()
+
+    def post(self, request, **kwargs):
+        if request.user.userprofile.is_banned:
+            return redirect(reverse("users:banned", args=[request.user.id]))
+        return super().post(request, **kwargs)
 
 
 class ThreadListViewMixin(BaseViewMixin, ListView):
@@ -123,7 +131,7 @@ class UpdateThreadView(CrudPermissionViewMixin, UpdateView):
             instance=thread.starting_post,
         )
         post_form.save()
-        return super().post(self, request, **kwargs)
+        return super().post(request, **kwargs)
 
 
 class DeleteThreadView(CrudPermissionViewMixin, DeleteView):
