@@ -130,9 +130,11 @@ STATICFILES_FINDERS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+DEFAULT_AVATAR_URL = os.path.join(MEDIA_URL, "default_avatar.png")
 
 # Other settings.
 MODERATOR_GROUP_NAME = "Moderator"
 LOGOUT_REDIRECT_URL = "users:login"
+AUTH_PROFILE_MODULE = "users.UserProfile"
 # !IMPORTANT! Remove on production.
 AUTH_PASSWORD_VALIDATORS = []

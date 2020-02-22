@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=helpdesk
+      - POSTGRES_DB=forum
 
   web:
     container_name: forum_web
