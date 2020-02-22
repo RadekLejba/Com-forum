@@ -1,0 +1,41 @@
+FROM python:3.8.0 as builder
+
+WORKDIR /usr/src/forum
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/forum/wheels -r requirements.txt
+
+
+FROM python:3.8.0
+
+RUN mkdir -p /home/forum
+
+RUN addgroup --system forum && adduser --system --group forum
+
+ENV HOME=/home/forum
+ENV APP_HOME=/home/forum/web
+RUN mkdir $APP_HOME
+RUN mkdir $APP_HOME/static
+RUN mkdir $APP_HOME/media
+WORKDIR $APP_HOME
+
+RUN apt-get update && apt-get install netcat-openbsd
+
+COPY --from=builder /usr/src/forum/wheels /wheels
+COPY --from=builder /usr/src/forum/requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache /wheels/*
+
+COPY entrypoint.prod.sh $APP_HOME
+
+COPY . $APP_HOME
+
+RUN chown -R forum:forum $APP_HOME
+
+USER forum
+
+ENTRYPOINT ["/home/forum/web/entrypoint.prod.sh"]
