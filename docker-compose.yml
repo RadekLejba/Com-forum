@@ -1,9 +1,11 @@
-version: '3'
+version: '3.7'
 
 services:
   db:
     container_name: forum_db
-    image: postgres
+    image: postgres:12.1
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
@@ -14,10 +16,13 @@ services:
     build: .
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/code
+      - ./:/usr/src/forum
     ports:
       - "8000:8000"
     depends_on:
       - db
-    stdin_open: true
-    tty: true
+    env_file:
+      - ./.env.dev
+
+volumes:
+  postgres_data:
