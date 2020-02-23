@@ -14,6 +14,7 @@
                     Boards
                 </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{% url 'posting:create_board'%}">CREATE BOARD</a>
                 {% boards_list as boards%}
                 {% for board in boards %}
                     <a class="dropdown-item" href="{% url 'posting:board_threads_list' board_pk=board.pk %}">{{ board.name }}<span class="sr-only">(current)</span></a>

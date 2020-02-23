@@ -37,7 +37,8 @@ class PostingTestMixin(TestCase):
         for permission in moderator_permissions:
             self.moderator.user_permissions.add(permission)
         self.moderator.save()
-        self.board = Board.objects.create(creator=self.user, name="testboard",)
+        self.board_name = "testboard"
+        self.board = Board.objects.create(creator=self.user, name=self.board_name,)
         self.thread_name = "test_thread"
         self.post_content = "This is test post content"
         self.board_threads_list_url = reverse(
@@ -106,6 +107,11 @@ class FormsTestCase(PostingTestMixin):
 class BoardViewsTestCase(PostingTestMixin):
     def setUp(self):
         super().setUp()
+        self.create_board_url = reverse("posting:create_board")
+        self.update_board_url = reverse("posting:update_board", args=[self.board.pk])
+        self.delete_board_url = reverse("posting:delete_board", args=[self.board.pk])
+        self.board_name = "testcreatedboard"
+        self.description = "test description"
         self.board2 = Board.objects.create(creator=self.user, name="testboard2",)
         self.thread = Thread.objects.create(
             author=self.user, board=self.board, name=self.thread_name,
@@ -147,6 +153,74 @@ class BoardViewsTestCase(PostingTestMixin):
         self.assertListEqual(
             list(response.context["object_list"]), [self.thread, self.thread3]
         )
+
+    def test_create_board_with_permissions(self):
+        create_thread_permission = Permission.objects.get(name="Can add board")
+        self.user.user_permissions.add(create_thread_permission)
+        self.user.save()
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(
+            self.create_board_url,
+            {"name": self.board_name, "description": self.description},
+        )
+        board = Board.objects.get(name=self.board_name)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(board.description, self.description)
+
+    def test_cant_create_board_without_permissions(self):
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(
+            self.create_board_url,
+            {"name": self.board_name, "description": self.description},
+        )
+        board = Board.objects.filter(name=self.board_name)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(board.count(), 0)
+
+    def test_cant_update_board_without_permissions(self):
+        new_description = "new description"
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(
+            self.update_board_url, {"description": new_description}
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_update_board_with_permissions(self):
+        create_thread_permission = Permission.objects.get(name="Can change board")
+        self.user.user_permissions.add(create_thread_permission)
+        self.user.save()
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(
+            self.update_board_url, {"description": 'new description'}
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_cant_delete_board_without_permissions(self):
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(self.delete_board_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_delete_board_with_permissions(self):
+        create_thread_permission = Permission.objects.get(name="Can delete board")
+        self.user.user_permissions.add(create_thread_permission)
+        self.user.save()
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(self.delete_board_url)
+        board = Board.objects.filter(name=self.board_name)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(board.count(), 0)
 
 
 class PostViewsTestCase(PostingTestMixin):

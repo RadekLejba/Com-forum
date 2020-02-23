@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
 
 from posting.models import Thread
@@ -26,6 +27,11 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return "{} profile".format(self.user)
+
+    def get_absolute_url(self):
+        return reverse(
+            "users:user", args=[self.pk],
+        )
 
 
 class Ban(models.Model):

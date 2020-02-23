@@ -10,10 +10,16 @@ class Board(models.Model):
     created = models.DateField(auto_now_add=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.CharField(max_length=500, blank=True)
+    updated_on = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100, primary_key=True)
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            "posting:board_threads_list", kwargs={"board_pk": self.pk},
+        )
 
 
 class Thread(models.Model):
@@ -21,6 +27,7 @@ class Thread(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     closed = models.DateField(null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
 
     def __str__(self):
