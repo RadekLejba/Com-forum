@@ -9,6 +9,9 @@ urlpatterns = [
     path(
         r"observed/", views.ObservedThreadsListView.as_view(), name="observed_threads"
     ),
+    path(r"board/create", views.CreateBoardView.as_view(), name="create_board",),
+    path(r"board/<pk>/edit", views.UpdateBoardView.as_view(), name="update_board",),
+    path(r"board/<pk>/delete", views.DeleteBoardView.as_view(), name="delete_board",),
     path(
         r"board/<str:board_pk>/threads",
         views.BoardThreadsListView.as_view(),

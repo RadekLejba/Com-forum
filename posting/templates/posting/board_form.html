@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Create board{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Create board</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}<br>
+                {{ form.name|attr:"class:form-control"}}
+                {% for error in form.name.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.description.label_tag }}<br>
+                {{ form.description|attr:"class:form-control"}}
+                {% for error in form.description.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btnSubmit" value="Create board" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import (
     HttpResponseNotFound,
     HttpResponseForbidden,
@@ -13,7 +14,11 @@ from posting.forms import PostForm
 from posting.models import Board, Thread, Post
 
 
-class CrudPermissionViewMixin(BaseViewMixin):
+class CrudPermissionViewMixin(BaseViewMixin, PermissionRequiredMixin):
+    pass
+
+
+class CrudPermissionViewAuthorMixin(BaseViewMixin):
     permission = ""
 
     def dispatch(self, request, **kwargs):
@@ -56,6 +61,28 @@ class BoardThreadsListView(ThreadListViewMixin):
 
     def get_queryset(self):
         return Thread.objects.filter(board=self.kwargs.get("board_pk"))
+
+
+class CreateBoardView(CrudPermissionViewMixin, CreateView):
+    fields = ["name", "description"]
+    model = Board
+    permission_required = "posting.add_board"
+
+    def form_valid(self, form):
+        form.instance.creator = self.request.user
+        return super().form_valid(form)
+
+
+class UpdateBoardView(CrudPermissionViewMixin, UpdateView):
+    fields = ["name", "description"]
+    model = Board
+    permission_required = "posting.change_board"
+
+
+class DeleteBoardView(CrudPermissionViewMixin, DeleteView):
+    model = Board
+    permission_required = "posting.delete_board"
+    success_url = reverse_lazy("posting:overboard")
 
 
 class CreateThreadView(BaseViewMixin, CreateView):
@@ -110,7 +137,7 @@ class ThreadDetailView(BaseViewMixin, DetailView):
         return context
 
 
-class UpdateThreadView(CrudPermissionViewMixin, UpdateView):
+class UpdateThreadView(CrudPermissionViewAuthorMixin, UpdateView):
     model = Thread
     fields = ["name"]
     permission = "posting.change_thread"
@@ -134,7 +161,7 @@ class UpdateThreadView(CrudPermissionViewMixin, UpdateView):
         return super().post(request, **kwargs)
 
 
-class DeleteThreadView(CrudPermissionViewMixin, DeleteView):
+class DeleteThreadView(CrudPermissionViewAuthorMixin, DeleteView):
     model = Thread
     permission = "posting.delete_thread"
     template_name = "posting/confirm_delete.html"
@@ -168,13 +195,13 @@ class CreatePostView(BaseViewMixin, CreateView):
         return context
 
 
-class UpdatePostView(CrudPermissionViewMixin, UpdateView):
+class UpdatePostView(CrudPermissionViewAuthorMixin, UpdateView):
     model = Post
     fields = ["content"]
     permission = "posting.change_post"
 
 
-class DeletePostView(CrudPermissionViewMixin, DeleteView):
+class DeletePostView(CrudPermissionViewAuthorMixin, DeleteView):
     model = Post
     permission = "posting.delete_post"
     template_name = "posting/confirm_delete.html"

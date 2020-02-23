@@ -197,9 +197,7 @@ class UserProfileTestCase(ViewsTestsMixin):
         self.client.login(username=self.moderator.username, password=self.password)
 
         response_get = self.client.get(self.update_user_profile_url)
-        response_post = self.client.post(
-            self.update_user_profile_url, self.update_form
-        )
+        response_post = self.client.post(self.update_user_profile_url, self.update_form)
 
         self.assertEqual(response_get.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response_post.status_code, HTTPStatus.FORBIDDEN)
