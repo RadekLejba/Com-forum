@@ -5,48 +5,83 @@
 {% block content %}
 <div class="container mt-5 mb-5">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div>
-                <row>
-                    <h3>{{ object.author}}</h3>
-                    {% if perms.posting.change_thread or object.author == user %}
-                        <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
-                            edit
-                        </a>
-                    {% endif %}
-                    <br/>
-                    {% if perms.posting.delete_thread or object.author == user %}
-                        <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
-                            delete
-                        </a>
-                    {% endif %}
-                </row>
-                {% if starting_post.file %}
-                    <row>
-                        <img src="{{ starting_post.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
-                    </row>
-                {% endif %}
-                <row>
-                    <h4>{{ starting_post.content }}</h4>
-                    <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?responding_to_the_thread=True" >
-                        <button class="btn btn-outline-dark" type="submit">Respond</button>
-                    </a>
-                </row>
-            </div>
-            <ul class="timeline">
-                {% for parent, children in posts.items %}
-                    <li>
-                        {% include "posting/_item.html" with item=parent %}
-                        {% if children %}
-                            {% for child in children %}
-                                <ul class="timeline">
-                                    {% include "posting/_item.html" with item=child %}
-                                </ul>
-                            {% endfor %}
+        <div class="col-sm-12 col-lg-8">
+            <div class="row">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="media flex-wrap w-100 align-items-center"> 
+                            <a href="{% url 'users:user_profile' pk=object.author.pk %}">
+                                <img src="{{ object.author.userprofile.avatar_url }}" class="d-block rounded-circle thread-avatar" alt="">
+                            </a>
+                            <div class="media-body ml-3">
+                                {{ object.author }}
+                                <div class="text-muted small">{{ starting_post.time_passed_since_creation }} ago</div>
+                            </div>
+                            <div class="text-muted small ml-3">
+                                <div>Member since <strong>01/1/2019</strong></div>
+                                <div><strong>134</strong> posts</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if starting_post.file %}
+                            <div class="row">
+                                <img src="{{ starting_post.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
+                            </div>
                         {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+                        <div class="row">
+                            <h4>{{ starting_post.content }}</h4>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col">
+                                    <a href="{% url 'users:user_profile' pk=object.author.pk %}">
+                                        <img src="{{ object.author.userprofile.avatar_url }}" class="thread-avatar">
+                                    </a>
+                                    {% if perms.posting.change_thread or object.author == user %}
+                                        <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
+                                            edit
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="float-left">{{ object.author }}</h5>
+                                    {% if perms.posting.delete_thread or object.author == user %}
+                                        <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
+                                            delete
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <h3>{{ object.name}}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <ul class="timeline">
+                        {% for parent, children in posts.items %}
+                            <li>
+                                {% include "posting/_item.html" with item=parent %}
+                                {% if children %}
+                                    {% for child in children %}
+                                        <ul class="timeline">
+                                            {% include "posting/_item.html" with item=child %}
+                                        </ul>
+                                    {% endfor %}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
             <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
                 <button class="btn btn-outline-dark" type="submit">Respond</button>
             </a>

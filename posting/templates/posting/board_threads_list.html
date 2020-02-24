@@ -5,12 +5,12 @@
 {% block content %}
 <div class="row my-2">
     <ul class="list-inline">
-    <a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
-        <button class="btn btn-outline-dark col-lg-12" type="submit">Create Thread</button>
-    </a>
-    {% for object in object_list %}
-        {% include 'posting/_thread.html' %}
-    {% endfor %}
+        <a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
+            <button class="btn btn-outline-dark col-lg-12" type="submit">Create Thread</button>
+        </a>
+        {% for object in object_list %}
+            {% include 'posting/_thread.html' %}
+        {% endfor %}
     </ul>
 </div>
 {% endblock %}

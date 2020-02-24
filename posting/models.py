@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from posting.exceptions import CannotCreateException
@@ -17,9 +20,7 @@ class Board(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(
-            "posting:board_threads_list", kwargs={"board_pk": self.pk},
-        )
+        return reverse("posting:board_threads_list", kwargs={"board_pk": self.pk},)
 
 
 class Thread(models.Model):
@@ -42,6 +43,10 @@ class Thread(models.Model):
         if self.starting_post:
             return self.starting_post.file
 
+    @property
+    def post_count(self):
+        return self.post_set.count() - 1
+
     def get_absolute_url(self):
         return reverse(
             "posting:thread", kwargs={"board_pk": self.board.pk, "pk": self.pk},
@@ -52,6 +57,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField(default="")
     created_on = models.DateTimeField(auto_now_add=True)
+    updated = models.BooleanField(default=False)
     updated_on = models.DateTimeField(auto_now=True)
     hidden = models.BooleanField(null=True, blank=True)
     parent = models.ForeignKey(
@@ -67,6 +73,35 @@ class Post(models.Model):
     starting_post = models.BooleanField(default=False)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     file = models.ImageField(blank=True)
+
+    def check_plural(self, number):
+        if number != 1:
+            return "s"
+        return ""
+
+    def timedelta_to_humanified_string(self, passed_time):
+        seconds = passed_time.seconds
+        if passed_time <= timedelta(minutes=1):
+            return "{} second{}".format(seconds, self.check_plural(seconds))
+        elif passed_time <= timedelta(hours=1):
+            minutes = seconds // 60
+            return "{} minute{}".format(minutes, self.check_plural(minutes))
+        elif passed_time <= timedelta(days=1):
+            hours = seconds // 3600
+            return "{} hour{}".format(hours, self.check_plural(hours))
+
+        days = passed_time.days
+        return "{} day{}".format(days, self.check_plural(days))
+
+    @property
+    def time_passed_since_creation(self):
+        passed_time = timezone.now() - self.created_on
+        return self.timedelta_to_humanified_string(passed_time)
+
+    @property
+    def time_passed_since_edition(self):
+        passed_time = timezone.now() - self.updated_on
+        return self.timedelta_to_humanified_string(passed_time)
 
     def get_absolute_url(self):
         return "{}?{}".format(

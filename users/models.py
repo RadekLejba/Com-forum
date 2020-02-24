@@ -29,9 +29,7 @@ class UserProfile(models.Model):
         return "{} profile".format(self.user)
 
     def get_absolute_url(self):
-        return reverse(
-            "users:user", args=[self.pk],
-        )
+        return reverse("users:user", args=[self.pk],)
 
 
 class Ban(models.Model):

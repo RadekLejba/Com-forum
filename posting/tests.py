@@ -6,6 +6,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
+from freezegun import freeze_time
 
 from forum.tests import get_test_image_path
 from posting.exceptions import CannotCreateException
@@ -76,6 +77,41 @@ class ModelsTestCase(PostingTestMixin):
 
         self.assertEqual(thread.starting_post, post)
 
+    @freeze_time("2012-01-14 03:00:00", as_arg=True)
+    def test_get_time_passed(frozen_time, self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+        post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        frozen_time.move_to("2012-01-14 03:00:01")
+        self.assertEqual(post.time_passed_since_creation, "1 second")
+
+        frozen_time.move_to("2012-01-14 03:02:00")
+        self.assertEqual(post.time_passed_since_creation, "2 minutes")
+
+        frozen_time.move_to("2012-01-14 07:00:00")
+        self.assertEqual(post.time_passed_since_creation, "4 hours")
+
+        frozen_time.move_to("2012-01-20 03:00:00")
+        self.assertEqual(post.time_passed_since_creation, "6 days")
+
+    def test_update_flag_after_update(self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+        post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        self.assertFalse(post.updated)
+
+        post.content = 'test'
+        post.save()
+
+        self.assertTrue(post.updated)
 
 class FormsTestCase(PostingTestMixin):
     def test_post_form(self):
@@ -198,7 +234,7 @@ class BoardViewsTestCase(PostingTestMixin):
         self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(
-            self.update_board_url, {"description": 'new description'}
+            self.update_board_url, {"description": "new description"}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)

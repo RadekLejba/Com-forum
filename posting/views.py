@@ -197,7 +197,7 @@ class CreatePostView(BaseViewMixin, CreateView):
 
 class UpdatePostView(CrudPermissionViewAuthorMixin, UpdateView):
     model = Post
-    fields = ["content"]
+    fields = ["content", "file"]
     permission = "posting.change_post"
 
 

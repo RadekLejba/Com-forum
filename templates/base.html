@@ -6,10 +6,10 @@
     <head>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link href="{% sass_src 'users/scss/users.scss' %}" rel="stylesheet" type="text/css" />
+        <link href="{% sass_src 'posting/scss/posting.scss' %}" rel="stylesheet" type="text/css" />
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-        <script src="https://kit.fontawesome.com/3d38197300.js" crossorigin="anonymous"></script>
         <script src="https://kit.fontawesome.com/3d38197300.js" crossorigin="anonymous"></script>
         <script src="{% static 'posting/js/main.js' %}"></script>
         <title>
@@ -19,9 +19,9 @@
     </head>
     <body>
         {% include 'forum/top-navigation.html' %}
-        <div class="container">
+        <div class="col-12">
             <div class="row justify-content-center">
-                <div class="col-8">
+                <div class="col-sm-12 col-md-10 col-lg-8">
                     {% block content %}
                     {% endblock %}
                 </div>
