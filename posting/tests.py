@@ -108,10 +108,11 @@ class ModelsTestCase(PostingTestMixin):
 
         self.assertFalse(post.updated)
 
-        post.content = 'test'
+        post.content = "test"
         post.save()
 
         self.assertTrue(post.updated)
+
 
 class FormsTestCase(PostingTestMixin):
     def test_post_form(self):

@@ -164,7 +164,7 @@ class UpdateThreadView(CrudPermissionViewAuthorMixin, UpdateView):
 class DeleteThreadView(CrudPermissionViewAuthorMixin, DeleteView):
     model = Thread
     permission = "posting.delete_thread"
-    template_name = "posting/confirm_delete.html"
+    template_name = "posting/confirm_delete_thread.html"
 
     def dispatch(self, request, **kwargs):
         self.success_url = reverse_lazy(
@@ -199,12 +199,13 @@ class UpdatePostView(CrudPermissionViewAuthorMixin, UpdateView):
     model = Post
     fields = ["content", "file"]
     permission = "posting.change_post"
+    template_name = "posting/update_post_form.html"
 
 
 class DeletePostView(CrudPermissionViewAuthorMixin, DeleteView):
     model = Post
     permission = "posting.delete_post"
-    template_name = "posting/confirm_delete.html"
+    template_name = "posting/confirm_delete_post.html"
 
     def dispatch(self, request, **kwargs):
         thread_pk = self.get_object().thread.pk

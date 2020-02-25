@@ -18,7 +18,7 @@
                 <i class="fas fa-reply-all"></i> {{ object.post_count }}
             </div>
             <div class="author">
-                <i class="fas fa-user"></i> {{ object.author }}
+                <i class="fas fa-user"></i> {{ object.author.first_name }}
             </div>
             <div class="float-right favorite-container" data-thread_id="{{ object.id }}"
                  data-add-url="{% url 'users:add_to_observed' %}" data-remove-url="{% url 'users:remove_from_observed' %}">

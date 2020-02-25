@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    <div class="row">
+    <div class="row justify-content-center">
         <div class="col-sm-12 col-lg-8">
             <div class="row">
                 <div class="card mb-4">
@@ -14,12 +14,13 @@
                                 <img src="{{ object.author.userprofile.avatar_url }}" class="d-block rounded-circle thread-avatar" alt="">
                             </a>
                             <div class="media-body ml-3">
-                                {{ object.author }}
+                                {{ object.author.first_name }}
                                 <div class="text-muted small">{{ starting_post.time_passed_since_creation }} ago</div>
                             </div>
                             <div class="text-muted small ml-3">
-                                <div>Member since <strong>01/1/2019</strong></div>
-                                <div><strong>134</strong> posts</div>
+                                {% if starting_post.updated %}
+                                    <div>Edited {{ starting_post.time_passed_since_edition }} ago</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -37,8 +38,8 @@
                         <div class="col">
                             <div class="row">
                                 <div class="col">
-                                    <a href="{% url 'users:user_profile' pk=object.author.pk %}">
-                                        <img src="{{ object.author.userprofile.avatar_url }}" class="thread-avatar">
+                                    <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
+                                        <button class="btn btn-outline-dark" type="submit">Respond</button>
                                     </a>
                                     {% if perms.posting.change_thread or object.author == user %}
                                         <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
@@ -49,16 +50,12 @@
                             </div>
                             <div class="row">
                                 <div class="col">
-                                    <h5 class="float-left">{{ object.author }}</h5>
                                     {% if perms.posting.delete_thread or object.author == user %}
                                         <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
                                             delete
                                         </a>
                                     {% endif %}
                                 </div>
-                            </div>
-                            <div class="row">
-                                <h3>{{ object.name}}</h3>
                             </div>
                         </div>
                     </div>
@@ -82,9 +79,6 @@
                     </ul>
                 </div>
             </div>
-            <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
-                <button class="btn btn-outline-dark" type="submit">Respond</button>
-            </a>
         </div>
     </div>
 </div>

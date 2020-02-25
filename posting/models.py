@@ -67,12 +67,20 @@ class Post(models.Model):
         null=True,
         related_name="children",
     )
-    refers_to = models.ManyToManyField(
-        "self", related_name="referrers_set", blank=True,
+    refers_to = models.ForeignKey(
+        "self",
+        related_name="referrers_set",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     starting_post = models.BooleanField(default=False)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     file = models.ImageField(blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_content = self.content
 
     def check_plural(self, number):
         if number != 1:
@@ -113,6 +121,9 @@ class Post(models.Model):
         )
 
     def save(self, *args, **kwargs):
+        if not self.updated and self.content != self.__original_content:
+            self.updated = True
+
         if self.starting_post:
             try:
                 self.thread.post_set.exclude(id=self.id).get(starting_post=True)
@@ -122,4 +133,5 @@ class Post(models.Model):
                 raise CannotCreateException(
                     "Multiple starting posts in thread {}".format(self.thread.id)
                 )
+
         return super().save(*args, **kwargs)
