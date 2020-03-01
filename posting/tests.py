@@ -120,12 +120,11 @@ class FormsTestCase(PostingTestMixin):
             author=self.user, board=self.board, name=self.thread_name,
         )
         parent_post = Post.objects.create(author=self.user, thread=self.thread)
-        ref_post1 = Post.objects.create(author=self.user, thread=self.thread)
-        ref_post2 = Post.objects.create(author=self.user, thread=self.thread)
+        ref_post = Post.objects.create(author=self.user, thread=self.thread)
         data = {
             "content": self.post_content,
             "parent": parent_post.pk,
-            "refers_to": [ref_post1.pk, ref_post2.pk],
+            "refers_to": ref_post.pk,
         }
 
         form = PostForm(data, thread=self.thread, author=self.user)
@@ -136,9 +135,7 @@ class FormsTestCase(PostingTestMixin):
         self.assertEqual(post.parent.pk, data["parent"])
         self.assertEqual(post.author, self.user)
         self.assertEqual(post.thread, self.thread)
-        self.assertListEqual(
-            [referrer.pk for referrer in post.refers_to.all()], data["refers_to"],
-        )
+        self.assertEqual(post.refers_to, ref_post)
 
 
 class BoardViewsTestCase(PostingTestMixin):
