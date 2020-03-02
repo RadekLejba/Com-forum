@@ -26,10 +26,10 @@ class ViewsTestsMixin(TestCase):
         self.ban_list_url = reverse("users:ban_list",)
         self.banned_url = reverse("users:banned", kwargs={"user_pk": self.user.pk})
         self.user_profile_url = reverse(
-            "users:user_profile", kwargs={"pk": self.user.pk}
+            "users:user_profile", kwargs={"pk": self.user.userprofile.pk}
         )
         self.update_user_profile_url = reverse(
-            "users:edit_profile", kwargs={"pk": self.user.pk}
+            "users:edit_profile", kwargs={"pk": self.user.userprofile.pk}
         )
         self.test_duration = timedelta(days=2, hours=3)
         self.test_duration_days = "2"
@@ -151,6 +151,28 @@ class BanCRUDTestCase(ViewsTestsMixin):
         )
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def ban_list_displays_only_active_bans(self):
+        self.client.login(username=self.moderator.username, password=self.password)
+        with freeze_time("2012-01-14 03:00:00"):
+            Ban.objects.create(
+                user=self.user, duration=timedelta(days=3), reason="test"
+            )
+            Ban.objects.create(
+                user=self.user, duration=timedelta(days=77), reason="test"
+            )
+        active_ban = Ban.objects.create(
+            user=self.user, duration=timedelta(days=3), reason="test"
+        )
+        active_ban_2 = Ban.objects.create(
+            user=self.user, duration=timedelta(days=90), reason="test"
+        )
+
+        response = self.client.get(self.ban_list_url)
+
+        self.assertListEqual(
+            response.context["object_list"], [active_ban, active_ban_2]
+        )
 
     def test_create_view_initial_values(self):
         self.client.login(username=self.moderator.username, password=self.password)

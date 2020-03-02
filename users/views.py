@@ -64,6 +64,12 @@ class BanListView(BaseViewMixin, PermissionRequiredMixin, ListView):
     model = Ban
     permission_required = "users.view_ban"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        object_list = context.get("object_list")
+        context["object_list"] = [item for item in object_list if item.is_active]
+        return context
+
 
 class CreateBanView(BaseViewMixin, PermissionRequiredMixin, CreateView):
     model = Ban

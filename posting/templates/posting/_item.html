@@ -4,7 +4,7 @@
     <div class="card mb-4 item">
         <div class="card-header">
             <div class="media flex-wrap w-100 align-items-center"> 
-                <a href="{% url 'users:user_profile' pk=item.author.pk %}">
+                <a href="{% url 'users:user_profile' pk=item.author.userprofile.pk %}">
                     <img src="{{ item.author.userprofile.avatar_url }}" class="d-block rounded-circle thread-avatar" alt="">
                 </a>
                 <div class="media-body ml-3">
@@ -41,12 +41,12 @@
                         </a>
                         {% if perms.posting.change_post or item.author == user %}
                             <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
-                                <button class="btn btn-info" type="submit"> edit </button>
+                                <button class="btn btn-outline-dark" type="submit"> edit </button>
                             </a>
                         {% endif %}
                         {% if perms.posting.delete_post or item.author == user %}
                             <a class="float-right delete" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
-                                <button class="btn btn-warning" type="submit">
+                                <button class="btn btn-outline-dark" type="submit">
                                     delete
                                 </button>
                             </a>

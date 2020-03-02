@@ -12,7 +12,7 @@
         </div>
         <div class="card-footer">
             {% if user == object.user %}
-                <a href="{% url 'users:edit_profile' pk=user.pk %}">
+                <a href="{% url 'users:edit_profile' pk=object.pk %}">
                     <button class="btn btn-outline-dark" type="submit">Edit profile</button>
                 </a>
             {% endif %}
