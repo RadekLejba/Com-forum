@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Wpisy{% endblock %}
+{% block title %}Bans{% endblock %}
 
 {% block content %}
 <div class="row my-2">
-    <ul class="list-inline">
+    <ul class="list-group">
+    <h1>Bans</h1>
     {% for object in object_list %}
-        {{ object }}
+        <li class="list-group-item">
+            {{ object.user.username }} {{ object.time_left }}
+            <a href="{% url 'users:update_ban' pk=object.pk %}" >
+                <button class="btn btn-outline-dark" type="submit">Edit ban</button>
+            </a>
+            <a href="{% url 'users:delete_ban' pk=object.pk %}" >
+                <button class="btn btn-outline-dark" type="submit">Delete ban</button>
+            </a>
+        </li>
     {% endfor %}
     </ul>
 </div>

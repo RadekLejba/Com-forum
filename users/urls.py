@@ -53,7 +53,9 @@ urlpatterns = [
     ),
     path("user/<pk>", views.UserProfileDetailView.as_view(), name="user_profile"),
     path("user/<pk>/edit", views.UserProfileUpdateView.as_view(), name="edit_profile"),
-    path("banned/", views.UserBannedView.as_view(), name="banned"),
+    path("banned/<int:user_pk>", views.UserBannedView.as_view(), name="banned"),
     path("ban/", views.BanListView.as_view(), name="ban_list"),
+    path("ban/<pk>/update", views.UpdateBanView.as_view(), name="update_ban"),
+    path("ban/<pk>/delete", views.DeleteBanView.as_view(), name="delete_ban"),
     path("ban/create", views.CreateBanView.as_view(), name="create_ban"),
 ]

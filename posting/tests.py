@@ -1,4 +1,5 @@
 import ast
+from datetime import timedelta
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
@@ -12,6 +13,7 @@ from forum.tests import get_test_image_path
 from posting.exceptions import CannotCreateException
 from posting.forms import PostForm
 from posting.models import Board, Thread, Post
+from users.models import Ban
 
 
 class PostingTestMixin(TestCase):
@@ -46,6 +48,7 @@ class PostingTestMixin(TestCase):
             "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
         )
         self.observed_threads_list_url = reverse("posting:observed_threads",)
+        self.banned_url = reverse("users:banned", kwargs={"user_pk": self.user.pk})
 
     def tearDown(self):
         self.file.close()
@@ -112,6 +115,20 @@ class ModelsTestCase(PostingTestMixin):
         post.save()
 
         self.assertTrue(post.updated)
+
+    def test_get_thread_most_recent_post(self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+
+        previous_post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+        recent_post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        self.assertEqual(thread.last_post_added, recent_post.created_on)
 
 
 class FormsTestCase(PostingTestMixin):
@@ -317,6 +334,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(post.content, self.post_content)
         self.assertEqual(post.author, self.user)
+        self.assertEqual(post.updated, False)
 
     def test_create_post_with_parent_and_referrers(self):
         self.client.login(username=self.user.username, password=self.password)
@@ -419,6 +437,16 @@ class PostViewsTestCase(PostingTestMixin):
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
+    def test_banned_user_cannot_add_new_post(self):
+        self.client.login(username=self.user.username, password=self.password)
+        Ban.objects.create(user=self.user, duration=timedelta(days=3), reason="test")
+        posts_count = Post.objects.all().count()
+
+        response = self.client.post(self.create_url, {"content": self.post_content})
+
+        self.assertEqual(posts_count, Post.objects.all().count())
+        self.assertEqual(response.url, self.banned_url)
+
 
 class ThreadViewsTestCase(PostingTestMixin):
     def setUp(self):
@@ -488,6 +516,23 @@ class ThreadViewsTestCase(PostingTestMixin):
 
         # tearDown
         starting_post.file.storage.delete(starting_post.file.name)
+
+    def test_banned_user_cannot_add_new_thread(self):
+        self.client.login(username=self.user.username, password=self.password)
+        Ban.objects.create(user=self.user, duration=timedelta(days=3), reason="test")
+        thread_count = Thread.objects.all().count()
+
+        response = self.client.post(
+            self.create_thread_url,
+            {
+                "name": self.thread_name,
+                "content": self.post_content,
+                "file": self.file,
+            },
+        )
+
+        self.assertEqual(thread_count, Thread.objects.all().count())
+        self.assertEqual(response.url, self.banned_url)
 
     def test_thread_details_without_parent_child(self):
         post_1_in_thread = Post.objects.create(

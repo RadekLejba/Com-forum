@@ -7,24 +7,36 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <a class="navbar-brand" href="{% url 'posting:observed_threads' %}">Observed</a>
         <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'posting:observed_threads' %}">Observed</a>
+            </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Boards
                 </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                {% if perms.posting.can_add_board %}
-                    <a class="dropdown-item" href="{% url 'posting:create_board'%}">CREATE BOARD</a>
-                {% endif %}
-                {% boards_list as boards%}
-                {% for board in boards %}
-                    <a class="dropdown-item" href="{% url 'posting:board_threads_list' board_pk=board.pk %}">{{ board.name }}<span class="sr-only">(current)</span></a>
-                {% endfor %}
-            </div>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    {% if perms.posting.add_board %}
+                        <a class="dropdown-item" href="{% url 'posting:create_board'%}">CREATE BOARD</a>
+                    {% endif %}
+                    {% boards_list as boards%}
+                    {% for board in boards %}
+                        <a class="dropdown-item" href="{% url 'posting:board_threads_list' board_pk=board.pk %}">{{ board.name }}<span class="sr-only">(current)</span></a>
+                    {% endfor %}
+                </div>
+            </li>
+        {% if perms.users.add_ban %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'users:ban_list'%}">Bans</a>
+            </li>
+        {% endif %}
         </ul>
-        <a class="navbar-brand" href="{% url 'users:user_profile' pk=user.pk %}">Profile</a>
-        <div class="my-2 my-lg-0">
+        <div class="nav-item mr-4">
+            <a href="{% url 'users:user_profile' pk=user.pk %}">
+                <img src="{{ user.userprofile.avatar_url }}" class="d-block rounded-circle thread-avatar" alt="">
+            </a>
+        </div>
+        <div class="my-2 my-lg-0 nav-item">
             <a href="{% url 'users:logout' %}" >
                 <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Log out</button>
             </a>

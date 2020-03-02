@@ -41,18 +41,16 @@
                                     <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
                                         <button class="btn btn-outline-dark" type="submit">Respond</button>
                                     </a>
-                                    {% if perms.posting.change_thread or object.author == user %}
-                                        <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=object.pk%}">
-                                            edit
+                                    {% if perms.posting.change_post or item.author == user %}
+                                        <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=thread.id %}">
+                                            <button class="btn btn-info" type="submit"> edit </button>
                                         </a>
                                     {% endif %}
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    {% if perms.posting.delete_thread or object.author == user %}
-                                        <a class="float-right" href="{% url 'posting:delete_thread' board_pk=board_pk pk=object.pk%}">
-                                            delete
+                                    {% if perms.posting.delete_post or item.author == user %}
+                                        <a class="float-right delete" href="{% url 'posting:delete_thread' board_pk=board_pk pk=thread.id %}">
+                                            <button class="btn btn-warning" type="submit">
+                                                delete
+                                            </button>
                                         </a>
                                     {% endif %}
                                 </div>

@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Wpisy{% endblock %}
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
 <div class="col-lg-12">
-    <div class="card profile-details">
+    <div class="card text-center profile-details">
         <img class="card-img-top" src="{{ object.avatar_url }}" alt="Card image cap">
         <div class="card-body">
             <h5 class="card-title">{{ object.user.first_name}}</h5>
@@ -12,11 +12,13 @@
         </div>
         <div class="card-footer">
             {% if user == object.user %}
-                <a href="{% url 'users:edit_profile' pk=user.pk %}">Edit profile</a>
+                <a href="{% url 'users:edit_profile' pk=user.pk %}">
+                    <button class="btn btn-outline-dark" type="submit">Edit profile</button>
+                </a>
             {% endif %}
             {% if perms.posting.add_ban %}
-                <a href="{% url 'users:create_ban' %}?user_pk={{ pk }}" >
-                    <button class="btn btn-outline-dark" type="submit">Ban user</button>
+                <a href="{% url 'users:create_ban' %}?user_pk={{ user.pk }}" >
+                    <button class="btn btn-danger" type="submit">Ban user</button>
                 </a>
             {% endif %}
         </div>

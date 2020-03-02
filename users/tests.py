@@ -14,42 +14,6 @@ from posting.models import Board, Thread
 from users.models import Ban
 
 
-class UserProfileModelTestCase(TestCase):
-    def setUp(self):
-        self.User = get_user_model()
-
-    def test_userprofile_creation(self):
-        user = self.User.objects.create(username="testuser01")
-
-        self.assertIsNotNone(user.userprofile)
-
-    def test_is_banned(self):
-        user = self.User.objects.create(username="testuser01")
-
-        with freeze_time("2012-01-14 03:00:00"):
-            Ban.objects.create(user=user, duration=timedelta(days=3), reason="test")
-            Ban.objects.create(user=user, duration=timedelta(days=4), reason="test")
-
-            self.assertTrue(user.userprofile.is_banned)
-        self.assertFalse(user.userprofile.is_banned)
-
-
-class BanModelTestCase(TestCase):
-    def setUp(self):
-        self.User = get_user_model()
-        self.user = self.User.objects.create(username="testuser01")
-
-    def test_ban_end_date(self):
-        with freeze_time("2012-01-14 03:00:00"):
-            ban = Ban.objects.create(
-                user=self.user, duration=timedelta(days=2, hours=3)
-            )
-
-            self.assertTrue(ban.is_active)
-
-        self.assertFalse(ban.is_active)
-
-
 class ViewsTestsMixin(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -60,6 +24,7 @@ class ViewsTestsMixin(TestCase):
         self.user.save()
         self.create_ban_url = reverse("users:create_ban",)
         self.ban_list_url = reverse("users:ban_list",)
+        self.banned_url = reverse("users:banned", kwargs={"user_pk": self.user.pk})
         self.user_profile_url = reverse(
             "users:user_profile", kwargs={"pk": self.user.pk}
         )
@@ -67,6 +32,8 @@ class ViewsTestsMixin(TestCase):
             "users:edit_profile", kwargs={"pk": self.user.pk}
         )
         self.test_duration = timedelta(days=2, hours=3)
+        self.test_duration_days = "2"
+        self.test_duration_hours = "3"
         self.test_reason = "test reason"
         moderator_permissions = [
             Permission.objects.get(name="Can view ban"),
@@ -81,7 +48,69 @@ class ViewsTestsMixin(TestCase):
         self.moderator.save()
 
 
+class UserProfileModelTestCase(ViewsTestsMixin):
+    def test_userprofile_creation(self):
+        self.assertIsNotNone(self.user.userprofile)
+
+    def test_is_banned(self):
+        with freeze_time("2012-01-14 03:00:00"):
+            Ban.objects.create(
+                user=self.user, duration=timedelta(days=3), reason="test"
+            )
+            Ban.objects.create(
+                user=self.user, duration=timedelta(days=4), reason="test"
+            )
+
+            self.assertTrue(self.user.userprofile.is_banned)
+        self.assertFalse(self.user.userprofile.is_banned)
+
+
+class BanModelTestCase(ViewsTestsMixin):
+    def test_ban_end_date(self):
+        with freeze_time("2012-01-14 03:00:00"):
+            ban = Ban.objects.create(
+                user=self.user, duration=timedelta(days=2, hours=3)
+            )
+
+            self.assertTrue(ban.is_active)
+
+        self.assertFalse(ban.is_active)
+
+    def test_time_remaining(self):
+        with freeze_time("2012-01-14 03:00:00"):
+            ban = Ban.objects.create(
+                user=self.user, duration=timedelta(days=2, minutes=3, seconds=12)
+            )
+
+            self.assertTrue(ban.time_left, "48 hours 3 minutes and 12 seconds left")
+
+
 class BanCRUDTestCase(ViewsTestsMixin):
+    def test_banned_view_displays_current_ban(self):
+        self.client.login(username=self.user.username, password=self.password)
+        earlier_ban = Ban.objects.create(
+            user=self.user, duration=timedelta(days=3), reason="test"
+        )
+        later_ban = Ban.objects.create(
+            user=self.user, duration=timedelta(days=4), reason="test"
+        )
+
+        response = self.client.get(self.banned_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.context["most_recent_ban"], later_ban)
+
+    def test_only_ban_owner_can_access_banned_page(self):
+        self.client.login(username=self.user.username, password=self.password)
+        owner_response = self.client.get(self.banned_url)
+        self.client.logout()
+
+        self.client.login(username=self.moderator.username, password=self.password)
+        other_user_response = self.client.get(self.banned_url)
+
+        self.assertEqual(owner_response.status_code, HTTPStatus.OK)
+        self.assertEqual(other_user_response.status_code, HTTPStatus.FORBIDDEN)
+
     def test_moderator_can_see_ban_list(self):
         self.client.login(username=self.moderator.username, password=self.password)
 
@@ -96,7 +125,8 @@ class BanCRUDTestCase(ViewsTestsMixin):
             self.create_ban_url,
             {
                 "user": self.user.pk,
-                "duration": self.test_duration,
+                "duration_0": self.test_duration_days,
+                "duration_1": self.test_duration_hours,
                 "reason": self.test_reason,
             },
         )
@@ -107,12 +137,60 @@ class BanCRUDTestCase(ViewsTestsMixin):
         self.assertEqual(ban.duration, self.test_duration)
         self.assertEqual(ban.reason, self.test_reason)
 
+    def test_regular_user_cant_create_ban(self):
+        self.client.login(username=self.user.username, password=self.password)
+
+        response = self.client.post(
+            self.create_ban_url,
+            {
+                "user": self.user.pk,
+                "duration_0": self.test_duration_days,
+                "duration_1": self.test_duration_hours,
+                "reason": self.test_reason,
+            },
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
     def test_create_view_initial_values(self):
         self.client.login(username=self.moderator.username, password=self.password)
 
         response = self.client.get(self.create_ban_url, {"user_pk": self.user.pk,},)
 
         self.assertEqual(int(response.context["form"].initial["user"]), self.user.pk)
+
+    def test_moderator_can_edit_ban(self):
+        self.client.login(username=self.moderator.username, password=self.password)
+        ban = Ban.objects.create(
+            user=self.user, duration=timedelta(days=3), reason="test"
+        )
+        new_reason = "new reason"
+        update_ban_url = reverse("users:update_ban", args=[ban.pk])
+        response = self.client.post(
+            update_ban_url,
+            {
+                "user": self.user.pk,
+                "duration_0": self.test_duration_days,
+                "duration_1": self.test_duration_hours,
+                "reason": new_reason,
+            },
+        )
+
+        ban.refresh_from_db()
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(ban.reason, new_reason)
+
+    def test_moderator_can_delete_ban(self):
+        self.client.login(username=self.moderator.username, password=self.password)
+        ban = Ban.objects.create(
+            user=self.user, duration=timedelta(days=3), reason="test"
+        )
+        delete_ban_url = reverse("users:delete_ban", args=[ban.pk])
+
+        response = self.client.post(delete_ban_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(0, Ban.objects.filter(pk=ban.pk).count())
 
 
 class ObservedThreadTestCase(ViewsTestsMixin):

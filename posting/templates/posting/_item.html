@@ -14,12 +14,13 @@
                 <div class="text-muted small ml-3">
                     {% if item.updated %}
                         <div>Edited {{ item.time_passed_since_edition }} ago</div>
+                        <hr/>
+                    {% endif %}
+                    {% if item.refers_to %}
+                        <div>in response to {{ item.refers_to.author.first_name }}</div>
                     {% endif %}
                 </div>
             </div>
-            {% if item.refers_to %}
-                <div class="col">in response to {{ item.refers_to.author.first_name }}</div>
-            {% endif %}
         </div>
         <div class="card-body">
             {% if item.file %}

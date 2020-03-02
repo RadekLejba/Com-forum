@@ -8,7 +8,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 
 from forum.views import BaseViewMixin
 from posting.models import Thread
-from users.forms import ExtendedUserCreationForm
+from users.forms import CustomBanForm, ExtendedUserCreationForm
 from users.models import Ban, UserProfile
 
 
@@ -67,7 +67,7 @@ class BanListView(BaseViewMixin, PermissionRequiredMixin, ListView):
 
 class CreateBanView(BaseViewMixin, PermissionRequiredMixin, CreateView):
     model = Ban
-    fields = ["user", "reason", "duration"]
+    form_class = CustomBanForm
     permission_required = "users.add_ban"
     success_url = reverse_lazy("users:ban_list",)
 
@@ -80,14 +80,35 @@ class CreateBanView(BaseViewMixin, PermissionRequiredMixin, CreateView):
 
 class UpdateBanView(BaseViewMixin, PermissionRequiredMixin, UpdateView):
     model = Ban
-    fields = ["user", "reason", "duration"]
+    form_class = CustomBanForm
     permission_required = "users.change_ban"
+    success_url = reverse_lazy("users:ban_list",)
 
 
 class DeleteBanView(BaseViewMixin, PermissionRequiredMixin, DeleteView):
     model = Ban
     permission_required = "users.delete_ban"
+    success_url = reverse_lazy("users:ban_list",)
 
 
 class UserBannedView(TemplateView):
     template_name = "users/banned.html"
+
+    def get(self, request, **kwargs):
+        user_pk = kwargs.get("user_pk")
+        if self.request.user.pk != user_pk:
+            return HttpResponseForbidden()
+        return super().get(request, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_bans = self.request.user.ban_set.all()
+        active_bans = [ban for ban in user_bans if ban.is_active]
+        active_bans.sort(key=lambda x: x.created, reverse=True)
+
+        try:
+            context["most_recent_ban"] = active_bans[0]
+        except IndexError:
+            pass
+
+        return context

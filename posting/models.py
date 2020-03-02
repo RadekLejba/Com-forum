@@ -2,6 +2,8 @@ from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -30,6 +32,7 @@ class Thread(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
+    last_post_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -46,6 +49,13 @@ class Thread(models.Model):
     @property
     def post_count(self):
         return self.post_set.count() - 1
+
+    def update_most_recent_post_creation_date(self):
+        try:
+            self.last_post_added = self.post_set.all().order_by("-created_on")[0].created_on
+            self.save()
+        except IndexError:
+            return
 
     def get_absolute_url(self):
         return reverse(
@@ -80,7 +90,7 @@ class Post(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__original_content = self.content
+        self.original_content = self.content
 
     def check_plural(self, number):
         if number != 1:
@@ -108,8 +118,9 @@ class Post(models.Model):
 
     @property
     def time_passed_since_edition(self):
-        passed_time = timezone.now() - self.updated_on
-        return self.timedelta_to_humanified_string(passed_time)
+        if self.updated:
+            passed_time = timezone.now() - self.updated_on
+            return self.timedelta_to_humanified_string(passed_time)
 
     def get_absolute_url(self):
         return "{}?{}".format(
@@ -121,8 +132,9 @@ class Post(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if not self.updated and self.content != self.__original_content:
-            self.updated = True
+        if self.original_content:
+            if not self.updated and self.content != self.original_content:
+                self.updated = True
 
         if self.starting_post:
             try:
@@ -135,3 +147,9 @@ class Post(models.Model):
                 )
 
         return super().save(*args, **kwargs)
+
+
+@receiver(post_save, sender=Post)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        instance.thread.update_most_recent_post_creation_date()
