@@ -16,10 +16,10 @@ class UserProfile(models.Model):
 
     @property
     def is_banned(self):
-        bans = self.user.ban_set.filter()
-        for ban in bans:
-            if ban.is_active:
-                return True
+        active_bans = [ban for ban in self.user.ban_set.all() if ban.is_active]
+        if active_bans:
+            return True
+        return False
 
     @property
     def avatar_url(self):
@@ -29,9 +29,7 @@ class UserProfile(models.Model):
         return "{} profile".format(self.user)
 
     def get_absolute_url(self):
-        return reverse(
-            "users:user", args=[self.pk],
-        )
+        return reverse("users:user_profile", args=[self.pk],)
 
 
 class Ban(models.Model):
@@ -43,6 +41,13 @@ class Ban(models.Model):
     @property
     def is_active(self):
         return (self.created + self.duration) > timezone.now()
+
+    @property
+    def time_left(self):
+        time_left = (self.created + self.duration) - timezone.now()
+        hours, remainder = divmod(int(time_left.total_seconds()), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return "{} hours {} minutes and {} seconds left".format(hours, minutes, seconds)
 
 
 @receiver(post_save, sender=User)

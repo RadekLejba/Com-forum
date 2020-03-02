@@ -1,30 +1,63 @@
 {% load forum_tags %}
 
-<div>
-    <row>
-        <a target="_blank" href="#">{{ item.author }}</a>
-        <a href="#" class="float-right">{{ item.created }}</a>
-        {% if perms.posting.change_post or item.author == user %}
-            <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
-                edit
-            </a>
-        {% endif %}
-        <br/>
-        {% if perms.posting.delete_post or item.author == user %}
-            <a class="float-right" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
-                delete
-            </a>
-        {% endif %}
-    </row>
-    {% if item.file %}
-        <row>
-            <img src="{{ item.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
-        </row>
-    {% endif %}
-    <row>
-        <p>{{ item.content }}</p>
-        <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ item.id }}&parent={% item_or_parent_id item %}">
-            <button class="btn btn-outline-dark" type="submit">Respond</button>
-        </a>
-    </row>
+<div class="row">
+    <div class="card mb-4 item">
+        <div class="card-header">
+            <div class="media flex-wrap w-100 align-items-center"> 
+                <a href="{% url 'users:user_profile' pk=item.author.pk %}">
+                    <img src="{{ item.author.userprofile.avatar_url }}" class="d-block rounded-circle thread-avatar" alt="">
+                </a>
+                <div class="media-body ml-3">
+                    {{ item.author.first_name }}
+                    <div class="text-muted small">{{ item.time_passed_since_creation }} ago</div>
+                </div>
+                <div class="text-muted small ml-3">
+                    {% if item.updated %}
+                        <div>Edited {{ item.time_passed_since_edition }} ago</div>
+                        <hr/>
+                    {% endif %}
+                    {% if item.refers_to %}
+                        <div>in response to {{ item.refers_to.author.first_name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if item.file %}
+                <div class="row">
+                    <img src="{{ item.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
+                </div>
+            {% endif %}
+            <div class="row">
+                <h4>{{ item.content }}</h4>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="col">
+                <div class="row">
+                    <div class="col">
+                        <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}?refers_to={{ item.id }}&parent={% item_or_parent_id item %}">
+                            <button class="btn btn-outline-dark" type="submit">Respond</button>
+                        </a>
+                        {% if perms.posting.change_post or item.author == user %}
+                            <a class="float-right" href="{% url 'posting:update_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
+                                <button class="btn btn-info" type="submit"> edit </button>
+                            </a>
+                        {% endif %}
+                        {% if perms.posting.delete_post or item.author == user %}
+                            <a class="float-right delete" href="{% url 'posting:delete_post' board_pk=board_pk thread_pk=thread.id pk=item.pk%}">
+                                <button class="btn btn-warning" type="submit">
+                                    delete
+                                </button>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

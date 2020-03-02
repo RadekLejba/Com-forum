@@ -1,29 +1,27 @@
 {% extends 'base.html' %}
 
-{% block title %}Wpisy{% endblock %}
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div>
-                <row>
-                    <h3>{{ object.user.first_name}}</h3>
-                    {% if user == object.user %}
-                        <a href="{% url 'users:edit_profile' pk=user.pk %}">Edit profile</a>
-                    {% endif %}
-                </row>
-                <row>
-                    <img src="{{ object.avatar_url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
-                </row>
-                <row>
-                    Joined on: <h3>{{ object.user.date_joined}}</h4>
-                </row>
-            </div>
-            <a href="{% url 'users:create_ban' %}?user_pk={{ pk }}" >
-                <button class="btn btn-outline-dark" type="submit">Ban user</button>
-            </a>
+<div class="col-lg-12">
+    <div class="card text-center profile-details">
+        <img class="card-img-top" src="{{ object.avatar_url }}" alt="Card image cap">
+        <div class="card-body">
+            <h5 class="card-title">{{ object.user.first_name}}</h5>
+            Joined on: <h4>{{ object.user.date_joined }}</h4>
+        </div>
+        <div class="card-footer">
+            {% if user == object.user %}
+                <a href="{% url 'users:edit_profile' pk=user.pk %}">
+                    <button class="btn btn-outline-dark" type="submit">Edit profile</button>
+                </a>
+            {% endif %}
+            {% if perms.posting.add_ban %}
+                <a href="{% url 'users:create_ban' %}?user_pk={{ user.pk }}" >
+                    <button class="btn btn-danger" type="submit">Ban user</button>
+                </a>
+            {% endif %}
         </div>
     </div>
-</div>
+</h3>
 {% endblock %}

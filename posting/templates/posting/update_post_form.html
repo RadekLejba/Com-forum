@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Create post{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Edit post</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.content.label_tag }}<br>
+                {{ form.content|attr:"class:form-control"}}
+                {% for error in form.content.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.file.label_tag }}<br>
+                {{ form.file|attr:"class:form-control"}}
+                {% for error in form.file.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% if refers_to %}
+                <input type="hidden" name="refers_to" value="{{ refers_to }}"><br>
+            {% endif %}
+            {% if parent %}
+                <input type="hidden" name="parent" value="{{ parent }}"><br>
+            {% endif %}
+            <div class="form-group">
+                <input type="submit" class="btnSubmit" value="save" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

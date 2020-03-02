@@ -1,4 +1,5 @@
 import ast
+from datetime import timedelta
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
@@ -6,11 +7,13 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
+from freezegun import freeze_time
 
 from forum.tests import get_test_image_path
 from posting.exceptions import CannotCreateException
 from posting.forms import PostForm
 from posting.models import Board, Thread, Post
+from users.models import Ban
 
 
 class PostingTestMixin(TestCase):
@@ -45,6 +48,7 @@ class PostingTestMixin(TestCase):
             "posting:board_threads_list", kwargs={"board_pk": self.board.pk},
         )
         self.observed_threads_list_url = reverse("posting:observed_threads",)
+        self.banned_url = reverse("users:banned", kwargs={"user_pk": self.user.pk})
 
     def tearDown(self):
         self.file.close()
@@ -76,6 +80,56 @@ class ModelsTestCase(PostingTestMixin):
 
         self.assertEqual(thread.starting_post, post)
 
+    @freeze_time("2012-01-14 03:00:00", as_arg=True)
+    def test_get_time_passed(frozen_time, self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+        post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        frozen_time.move_to("2012-01-14 03:00:01")
+        self.assertEqual(post.time_passed_since_creation, "1 second")
+
+        frozen_time.move_to("2012-01-14 03:02:00")
+        self.assertEqual(post.time_passed_since_creation, "2 minutes")
+
+        frozen_time.move_to("2012-01-14 07:00:00")
+        self.assertEqual(post.time_passed_since_creation, "4 hours")
+
+        frozen_time.move_to("2012-01-20 03:00:00")
+        self.assertEqual(post.time_passed_since_creation, "6 days")
+
+    def test_update_flag_after_update(self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+        post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        self.assertFalse(post.updated)
+
+        post.content = "test"
+        post.save()
+
+        self.assertTrue(post.updated)
+
+    def test_get_thread_most_recent_post(self):
+        thread = Thread.objects.create(
+            author=self.user, board=self.board, name="test_thread",
+        )
+
+        previous_post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+        recent_post = Post.objects.create(
+            author=self.user, content="lorem ipsum", thread=thread,
+        )
+
+        self.assertEqual(thread.last_post_added, recent_post.created_on)
+
 
 class FormsTestCase(PostingTestMixin):
     def test_post_form(self):
@@ -83,12 +137,11 @@ class FormsTestCase(PostingTestMixin):
             author=self.user, board=self.board, name=self.thread_name,
         )
         parent_post = Post.objects.create(author=self.user, thread=self.thread)
-        ref_post1 = Post.objects.create(author=self.user, thread=self.thread)
-        ref_post2 = Post.objects.create(author=self.user, thread=self.thread)
+        ref_post = Post.objects.create(author=self.user, thread=self.thread)
         data = {
             "content": self.post_content,
             "parent": parent_post.pk,
-            "refers_to": [ref_post1.pk, ref_post2.pk],
+            "refers_to": ref_post.pk,
         }
 
         form = PostForm(data, thread=self.thread, author=self.user)
@@ -99,9 +152,7 @@ class FormsTestCase(PostingTestMixin):
         self.assertEqual(post.parent.pk, data["parent"])
         self.assertEqual(post.author, self.user)
         self.assertEqual(post.thread, self.thread)
-        self.assertListEqual(
-            [referrer.pk for referrer in post.refers_to.all()], data["refers_to"],
-        )
+        self.assertEqual(post.refers_to, ref_post)
 
 
 class BoardViewsTestCase(PostingTestMixin):
@@ -198,7 +249,7 @@ class BoardViewsTestCase(PostingTestMixin):
         self.client.login(username=self.user.username, password=self.password)
 
         response = self.client.post(
-            self.update_board_url, {"description": 'new description'}
+            self.update_board_url, {"description": "new description"}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -283,6 +334,7 @@ class PostViewsTestCase(PostingTestMixin):
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(post.content, self.post_content)
         self.assertEqual(post.author, self.user)
+        self.assertEqual(post.updated, False)
 
     def test_create_post_with_parent_and_referrers(self):
         self.client.login(username=self.user.username, password=self.password)
@@ -385,6 +437,16 @@ class PostViewsTestCase(PostingTestMixin):
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
+    def test_banned_user_cannot_add_new_post(self):
+        self.client.login(username=self.user.username, password=self.password)
+        Ban.objects.create(user=self.user, duration=timedelta(days=3), reason="test")
+        posts_count = Post.objects.all().count()
+
+        response = self.client.post(self.create_url, {"content": self.post_content})
+
+        self.assertEqual(posts_count, Post.objects.all().count())
+        self.assertEqual(response.url, self.banned_url)
+
 
 class ThreadViewsTestCase(PostingTestMixin):
     def setUp(self):
@@ -454,6 +516,23 @@ class ThreadViewsTestCase(PostingTestMixin):
 
         # tearDown
         starting_post.file.storage.delete(starting_post.file.name)
+
+    def test_banned_user_cannot_add_new_thread(self):
+        self.client.login(username=self.user.username, password=self.password)
+        Ban.objects.create(user=self.user, duration=timedelta(days=3), reason="test")
+        thread_count = Thread.objects.all().count()
+
+        response = self.client.post(
+            self.create_thread_url,
+            {
+                "name": self.thread_name,
+                "content": self.post_content,
+                "file": self.file,
+            },
+        )
+
+        self.assertEqual(thread_count, Thread.objects.all().count())
+        self.assertEqual(response.url, self.banned_url)
 
     def test_thread_details_without_parent_child(self):
         post_1_in_thread = Post.objects.create(

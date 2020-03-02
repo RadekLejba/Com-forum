@@ -1,27 +1,38 @@
-<li class="media">
-    <div class="col-sm-4 px-0">
+<li class="media thread">
+    <div class="col-sm-4 px-0 mediabox">
         {% if object.file %}
             <img src="{{ object.file.url }}" class="align-self-start mr-3 img-fluid img-thumbnail">
         {% endif %}
     </div>
     <div class="media-body">
         <h5 class="media-title">{{ object.name }}</h5>
-        <p>{{ object.starting_post.content }}</p>
-        <a href="{% url 'posting:thread' pk=object.id board_pk=object.board.pk%}" class="btn btn-primary">
-            Read more...
-        </a>
-        <div class="float-right favorite-container" data-thread_id="{{ object.id }}"
-             data-add-url="{% url 'users:add_to_observed' %}" data-remove-url="{% url 'users:remove_from_observed' %}">
-            {% csrf_token %}
-            {% if object in observed_threads %}
-                <a href="#" class="favorite" data-method="remove" >
-                    <i class="fas fa-eye-slash"></i>
-                </a>
-            {% else %}
-                <a href="#" class="favorite" data-method="add">
-                    <i class="fas fa-eye"></i>
-                </a>
-            {% endif %}
+        <div class="text">
+            <p>{{ object.starting_post.content|truncatechars:220 }}</p>
+        </div>
+        <div class="col"><hr></div>
+        <div class="col">
+            <a href="{% url 'posting:thread' pk=object.id board_pk=object.board.pk%}" class="btn btn-primary">
+                Read more...
+            </a>
+            <div class="post_count">
+                <i class="fas fa-reply-all"></i> {{ object.post_count }}
+            </div>
+            <div class="author">
+                <i class="fas fa-user"></i> {{ object.author.first_name }}
+            </div>
+            <div class="float-right favorite-container" data-thread_id="{{ object.id }}"
+                 data-add-url="{% url 'users:add_to_observed' %}" data-remove-url="{% url 'users:remove_from_observed' %}">
+                {% csrf_token %}
+                {% if object in observed_threads %}
+                    <a href="#" class="favorite" data-method="remove" >
+                        <i class="fas fa-eye-slash"></i>
+                    </a>
+                {% else %}
+                    <a href="#" class="favorite" data-method="add">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </li>

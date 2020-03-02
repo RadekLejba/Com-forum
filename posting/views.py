@@ -18,7 +18,14 @@ class CrudPermissionViewMixin(BaseViewMixin, PermissionRequiredMixin):
     pass
 
 
-class CrudPermissionViewAuthorMixin(BaseViewMixin):
+class BannedUserPostMixin(BaseViewMixin):
+    def post(self, request, **kwargs):
+        if request.user.userprofile.is_banned:
+            return redirect(reverse("users:banned", args=[request.user.id]))
+        return super().post(request, **kwargs)
+
+
+class UpdatePermissionViewAuthorMixin(BannedUserPostMixin):
     permission = ""
 
     def dispatch(self, request, **kwargs):
@@ -27,13 +34,11 @@ class CrudPermissionViewAuthorMixin(BaseViewMixin):
             return super().dispatch(request, **kwargs)
         return HttpResponseForbidden()
 
-    def post(self, request, **kwargs):
-        if request.user.userprofile.is_banned:
-            return redirect(reverse("users:banned", args=[request.user.id]))
-        return super().post(request, **kwargs)
-
 
 class ThreadListViewMixin(BaseViewMixin, ListView):
+    paginate_by = 10
+    ordering = ['-last_post_added']
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["board_pk"] = self.kwargs.get("board_pk")
@@ -53,14 +58,13 @@ class ObservedThreadsListView(ThreadListViewMixin):
 class OverboardView(ThreadListViewMixin):
     model = Thread
     template_name = "posting/overboard.html"
-    ordering = ["-created_on"]
 
 
 class BoardThreadsListView(ThreadListViewMixin):
     template_name = "posting/board_threads_list.html"
 
     def get_queryset(self):
-        return Thread.objects.filter(board=self.kwargs.get("board_pk"))
+        return Thread.objects.filter(board=self.kwargs.get("board_pk")).order_by("-last_post_added")
 
 
 class CreateBoardView(CrudPermissionViewMixin, CreateView):
@@ -85,7 +89,7 @@ class DeleteBoardView(CrudPermissionViewMixin, DeleteView):
     success_url = reverse_lazy("posting:overboard")
 
 
-class CreateThreadView(BaseViewMixin, CreateView):
+class CreateThreadView(BannedUserPostMixin, CreateView):
     model = Thread
     fields = ["name"]
 
@@ -137,7 +141,7 @@ class ThreadDetailView(BaseViewMixin, DetailView):
         return context
 
 
-class UpdateThreadView(CrudPermissionViewAuthorMixin, UpdateView):
+class UpdateThreadView(UpdatePermissionViewAuthorMixin, UpdateView):
     model = Thread
     fields = ["name"]
     permission = "posting.change_thread"
@@ -161,10 +165,10 @@ class UpdateThreadView(CrudPermissionViewAuthorMixin, UpdateView):
         return super().post(request, **kwargs)
 
 
-class DeleteThreadView(CrudPermissionViewAuthorMixin, DeleteView):
+class DeleteThreadView(UpdatePermissionViewAuthorMixin, DeleteView):
     model = Thread
     permission = "posting.delete_thread"
-    template_name = "posting/confirm_delete.html"
+    template_name = "posting/confirm_delete_thread.html"
 
     def dispatch(self, request, **kwargs):
         self.success_url = reverse_lazy(
@@ -173,7 +177,7 @@ class DeleteThreadView(CrudPermissionViewAuthorMixin, DeleteView):
         return super().dispatch(request, **kwargs)
 
 
-class CreatePostView(BaseViewMixin, CreateView):
+class CreatePostView(BannedUserPostMixin, CreateView):
     model = Post
     fields = ["content", "parent", "refers_to", "file"]
 
@@ -195,16 +199,17 @@ class CreatePostView(BaseViewMixin, CreateView):
         return context
 
 
-class UpdatePostView(CrudPermissionViewAuthorMixin, UpdateView):
+class UpdatePostView(UpdatePermissionViewAuthorMixin, UpdateView):
     model = Post
-    fields = ["content"]
+    fields = ["content", "file"]
     permission = "posting.change_post"
+    template_name = "posting/update_post_form.html"
 
 
-class DeletePostView(CrudPermissionViewAuthorMixin, DeleteView):
+class DeletePostView(UpdatePermissionViewAuthorMixin, DeleteView):
     model = Post
     permission = "posting.delete_post"
-    template_name = "posting/confirm_delete.html"
+    template_name = "posting/confirm_delete_post.html"
 
     def dispatch(self, request, **kwargs):
         thread_pk = self.get_object().thread.pk
