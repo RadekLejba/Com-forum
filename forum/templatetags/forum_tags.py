@@ -8,7 +8,7 @@ register = template.Library()
 
 @register.simple_tag
 def boards_list():
-    return list(Board.objects.all())
+    return list(Board.objects.all().order_by("name"))
 
 
 @register.simple_tag

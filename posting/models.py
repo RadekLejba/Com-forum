@@ -52,7 +52,9 @@ class Thread(models.Model):
 
     def update_most_recent_post_creation_date(self):
         try:
-            self.last_post_added = self.post_set.all().order_by("-created_on")[0].created_on
+            self.last_post_added = (
+                self.post_set.all().order_by("-created_on")[0].created_on
+            )
             self.save()
         except IndexError:
             return

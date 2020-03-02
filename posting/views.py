@@ -37,7 +37,7 @@ class UpdatePermissionViewAuthorMixin(BannedUserPostMixin):
 
 class ThreadListViewMixin(BaseViewMixin, ListView):
     paginate_by = 10
-    ordering = ['-last_post_added']
+    ordering = ["-last_post_added"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -64,7 +64,9 @@ class BoardThreadsListView(ThreadListViewMixin):
     template_name = "posting/board_threads_list.html"
 
     def get_queryset(self):
-        return Thread.objects.filter(board=self.kwargs.get("board_pk")).order_by("-last_post_added")
+        return Thread.objects.filter(board=self.kwargs.get("board_pk")).order_by(
+            "-last_post_added"
+        )
 
 
 class CreateBoardView(CrudPermissionViewMixin, CreateView):
