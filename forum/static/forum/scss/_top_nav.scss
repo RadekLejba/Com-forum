@@ -1,0 +1,41 @@
+@media screen and (max-device-width: 768px) {
+    .navbar {
+
+        .navbar-brand {
+            height: 100px;
+            font-size: 36px;
+        }
+
+        .navbar-toggler-icon {
+            height: 100px;
+            width: 100px;
+        }
+
+        .nav-item {
+            height: 100px;
+            font-size: 36px;
+        }
+
+        .dropdown-menu {
+            position:absolute;
+
+            .dropdown-item {
+                height: 100px;
+                font-size: 36px;
+                z-index: 999;
+            }
+        }
+
+        .thread-avatar {
+            height: 100px;
+            width: 100px;
+        }
+
+        .logout {
+            height: 100px;
+            width: 200px;
+            font-size: 36px;
+            margin-top: 10px;
+        }
+    }
+}

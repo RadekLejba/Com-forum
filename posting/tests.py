@@ -500,7 +500,7 @@ class ThreadViewsTestCase(PostingTestMixin):
             self.create_thread_url,
             {
                 "name": self.thread_name,
-                "content": self.post_content,
+                "content": "wrong content",
                 "file": self.file,
             },
         )

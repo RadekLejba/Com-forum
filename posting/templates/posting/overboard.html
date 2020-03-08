@@ -3,13 +3,11 @@
 {% block title %}Wpisy{% endblock %}
 
 {% block content %}
-<div class="row my-2">
-    <ul class="list-inline">
+<ul class="list-inline">
     {% for object in object_list %}
         {% include 'posting/_thread.html' %}
     {% endfor %}
-    </ul>
-</div>
+</ul>
 <div class="row justify-content-center">
     <ul class="pagination">
         {% if page_obj.has_previous %}
