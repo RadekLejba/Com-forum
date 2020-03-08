@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Create Thread{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Create thread</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}<br>
+                {{ form.name|attr:"class:form-control" }}
+                {% for error in form.name.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ post_form.content.label_tag }}<br>
+                {{ post_form.content|attr:"class:form-control"}}
+                {% for error in post_form.content.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btnSubmit" value="Save thread" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

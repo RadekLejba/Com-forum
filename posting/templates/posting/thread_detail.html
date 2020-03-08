@@ -31,7 +31,7 @@
                             </div>
                         {% endif %}
                         <div class="row">
-                            <h4>{{ starting_post.content }}</h4>
+                            <p>{{ starting_post.content|linebreaks }}</p>
                         </div>
                     </div>
                     <div class="card-footer">
@@ -41,12 +41,12 @@
                                     <a href="{% url 'posting:create_post' board_pk=board_pk thread_pk=thread.id %}" >
                                         <button class="btn btn-outline-dark" type="submit">Respond</button>
                                     </a>
-                                    {% if perms.posting.change_post or item.author == user %}
+                                    {% if perms.posting.change_thread or object.author == user %}
                                         <a class="float-right" href="{% url 'posting:update_thread' board_pk=board_pk pk=thread.id %}">
                                             <button class="btn btn-outline-dark" type="submit"> edit </button>
                                         </a>
                                     {% endif %}
-                                    {% if perms.posting.delete_post or item.author == user %}
+                                    {% if perms.posting.delete_thread or object.author == user %}
                                         <a class="float-right delete mr-2" href="{% url 'posting:delete_thread' board_pk=board_pk pk=thread.id %}">
                                             <button class="btn btn-outline-dark" type="submit">
                                                 delete
@@ -63,7 +63,7 @@
                 <div class="col">
                     <ul class="timeline">
                         {% for parent, children in posts.items %}
-                            <li>
+                            <li class="list-unstyled">
                                 {% include "posting/_item.html" with item=parent %}
                                 {% if children %}
                                     {% for child in children %}

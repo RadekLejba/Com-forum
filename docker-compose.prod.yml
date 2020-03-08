@@ -22,7 +22,6 @@ services:
     image: postgres:12.1
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-      - media_volume:/home/forum/web/media
     env_file:
       - ./.env.prod.db
 
@@ -30,6 +29,7 @@ services:
     build: ngnix/
     volumes:
       - static_volume:/home/forum/web/static
+      - media_volume:/home/forum/web/media
     ports:
       - 1337:80
     depends_on:

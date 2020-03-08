@@ -2,12 +2,7 @@
     background-color: #F5F5F5;
     margin-bottom: 15px;
     padding: 5px;
-    height: 200px;
 
-    .text {
-        height: 85px;
-        margin-bottom: 5px;
-    }
     .mediabox {
         max-height: 75%;
 
@@ -16,6 +11,10 @@
             max-height: 190px;
             width: 90%;
         }
+    }
+
+    .text {
+        min-height: 80px;
     }
 
     .favorite-container {
@@ -30,5 +29,24 @@
 
     .author {
         display: inline-block;
+    }
+
+    @media screen and (max-device-width: 768px) {
+        .read-more {
+            height: 100px;
+            width: 200px;
+            font-size: 24px;
+            padding-top: 30px
+        }
+
+        .favorite-container {
+            height: 100px;
+            width: 100px;
+
+            a {
+                font-size: 36px;
+            }
+        }
+
     }
 }

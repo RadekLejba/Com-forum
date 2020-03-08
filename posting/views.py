@@ -68,6 +68,11 @@ class BoardThreadsListView(ThreadListViewMixin):
             "-last_post_added"
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["board"] = Board.objects.get(pk=context["board_pk"])
+        return context
+
 
 class CreateBoardView(CrudPermissionViewMixin, CreateView):
     fields = ["name", "description"]
@@ -147,6 +152,7 @@ class UpdateThreadView(UpdatePermissionViewAuthorMixin, UpdateView):
     model = Thread
     fields = ["name"]
     permission = "posting.change_thread"
+    template_name = "posting/edit_thread_form.html"
 
     def get_context_data(self, **kwargs):
         thread = self.get_object()

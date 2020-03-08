@@ -3,16 +3,19 @@
 {% block title %}Create post{% endblock %}
 
 {% block content %}
-<div class="row my-2">
-    <ul class="list-inline">
-        <a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
-            <button class="btn btn-outline-dark col-lg-12" type="submit">Create Thread</button>
-        </a>
-        {% for object in object_list %}
-            {% include 'posting/_thread.html' %}
-        {% endfor %}
-    </ul>
+<div class="row">
+    <div class="col">
+        <h1> {{ board.name }} </h1>
+    </div>
 </div>
+<ul class="list-inline">
+    <a href="{% url 'posting:create_thread' board_pk=board_pk %}" >
+        <button class="btn btn-outline-dark col-lg-12" type="submit">Create Thread</button>
+    </a>
+    {% for object in object_list %}
+        {% include 'posting/_thread.html' %}
+    {% endfor %}
+</ul>
 <div class="row justify-content-center">
     <ul class="pagination">
         {% if page_obj.has_previous %}
